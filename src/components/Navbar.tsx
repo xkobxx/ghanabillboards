@@ -28,6 +28,9 @@ export default function Navbar() {
         <Link to="/booking" className={isActive('/booking') ? 'active' : ''}>
           Billboards
         </Link>
+        <Link to="/blueprint" className={isActive('/blueprint') ? 'active' : ''}>
+          Platform
+        </Link>
       </div>
 
       {/* Desktop actions */}
@@ -62,6 +65,10 @@ export default function Navbar() {
         <Link to="/booking" onClick={() => setMenuOpen(false)}
           className={isActive('/booking') ? 'active' : ''}>
           Billboards
+        </Link>
+        <Link to="/blueprint" onClick={() => setMenuOpen(false)}
+          className={isActive('/blueprint') ? 'active' : ''}>
+          Platform
         </Link>
         <div className="vp-mobile-actions">
           {currentUser ? (
