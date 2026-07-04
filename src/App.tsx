@@ -144,7 +144,7 @@ export default function App() {
       });
 
       // ponytail: LandingPage runs its own reveal; all other vp-home pages need this
-      if (location.pathname !== '/') {
+      if (location.pathname !== '/' && location.pathname !== '/blueprint') {
         gsap.utils.toArray<HTMLElement>('.vp-home .reveal, .vp-home .fade-up').forEach((el) => {
           gsap.fromTo(
             el,
