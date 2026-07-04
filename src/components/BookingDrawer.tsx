@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Billboard, Booking } from '../types';
-import { X, Calendar, DollarSign, ArrowRight, ShieldCheck, Mail, ClipboardCheck, Building2, Check, CreditCard, Receipt } from 'lucide-react';
+import { X, ShieldCheck, Building2, Check, CreditCard, Receipt, Clock3, LoaderCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import AvailabilityCalendar from './AvailabilityCalendar';
+import { getBillboardAvailability } from '../lib/availabilityApi';
 
 interface BookingDrawerProps {
   billboard: Billboard | null;
@@ -18,15 +20,53 @@ function daysFromNow(n: number) {
   return d.toISOString().slice(0, 10);
 }
 
+function localDateTime(date: string, time: string) {
+  return new Date(`${date}T${time}:00`);
+}
+
 export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: BookingDrawerProps) {
   const [campaignName, setCampaignName] = useState('');
   const [clientName, setClientName] = useState('');
   const [slogan, setSlogan] = useState('');
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState(() => daysFromNow(14));
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('17:00');
+  const [activeBoundary, setActiveBoundary] = useState<'start' | 'end'>('start');
   const [dateError, setDateError] = useState('');
+  const [availabilityState, setAvailabilityState] = useState<'idle' | 'checking' | 'available' | 'unavailable' | 'error'>('idle');
   const [checkoutStep, setCheckoutStep] = useState<'form' | 'processing' | 'success'>('form');
   const [receiptCode, setReceiptCode] = useState('');
+
+  useEffect(() => {
+    if (!billboard) {
+      setAvailabilityState('idle');
+      return;
+    }
+
+    const startAt = localDateTime(startDate, startTime);
+    const endAt = localDateTime(endDate, endTime);
+    if (
+      startDate < todayStr()
+      || !Number.isFinite(startAt.getTime())
+      || !Number.isFinite(endAt.getTime())
+      || endAt <= startAt
+    ) {
+      setAvailabilityState('idle');
+      return;
+    }
+
+    const controller = new AbortController();
+    setAvailabilityState('checking');
+    getBillboardAvailability(billboard.id, startAt, endAt, controller.signal)
+      .then((result) => setAvailabilityState(result.available ? 'available' : 'unavailable'))
+      .catch((error: unknown) => {
+        if ((error as Error).name === 'AbortError') return;
+        setAvailabilityState('error');
+      });
+
+    return () => controller.abort();
+  }, [billboard, startDate, startTime, endDate, endTime]);
 
   if (!billboard) return null;
 
@@ -42,7 +82,17 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
     e.preventDefault();
     if (!campaignName || !clientName) return;
     if (startDate < todayStr()) { setDateError('Start date cannot be in the past.'); return; }
-    if (endDate <= startDate) { setDateError('End date must be after start date.'); return; }
+    const startAt = localDateTime(startDate, startTime);
+    const endAt = localDateTime(endDate, endTime);
+    if (endAt <= startAt) { setDateError('Campaign end must be after its start.'); return; }
+    if (availabilityState !== 'available') {
+      setDateError(
+        availabilityState === 'unavailable'
+          ? 'That time is already reserved. Select another slot.'
+          : 'Live availability must be confirmed before booking.',
+      );
+      return;
+    }
     setDateError('');
 
     setCheckoutStep('processing');
@@ -59,6 +109,8 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
         billboardId: billboard.id,
         startDate,
         endDate,
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
         campaignName,
         clientName,
         slogan: slogan || undefined,
@@ -77,8 +129,29 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
     setDateError('');
     setStartDate(todayStr());
     setEndDate(daysFromNow(14));
+    setStartTime('09:00');
+    setEndTime('17:00');
+    setActiveBoundary('start');
+    setAvailabilityState('idle');
     setCheckoutStep('form');
     onClose();
+  };
+
+  const handleCalendarDate = (date: string) => {
+    setDateError('');
+    if (activeBoundary === 'start') {
+      setStartDate(date);
+      if (endDate < date) setEndDate(date);
+      setActiveBoundary('end');
+      return;
+    }
+
+    if (date < startDate) {
+      setDateError('End date cannot be before the start date.');
+      return;
+    }
+    setEndDate(date);
+    setActiveBoundary('start');
   };
 
   return (
@@ -195,38 +268,115 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                   />
                 </div>
 
-                {/* Dates Selector */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label htmlFor="drawer-start-date" className="block font-mono text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.2em] font-semibold">
-                      CAMPAIGN START DATE
-                    </label>
-                    <div className="relative">
+                <div className="space-y-3">
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <span className="font-mono text-caption font-semibold uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">
+                        Campaign window
+                      </span>
+                      <p className="mt-1 text-body-xs text-[var(--color-text-muted)]">
+                        Choose the dates, then set precise local times.
+                      </p>
+                    </div>
+                    <span className="flex items-center gap-1.5 text-caption text-[var(--color-text-muted)]">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-px border border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveBoundary('start')}
+                      className={`bg-[var(--color-surface)] p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] ${
+                        activeBoundary === 'start' ? 'shadow-[inset_0_-2px_0_var(--color-primary)]' : ''
+                      }`}
+                    >
+                      <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                        Starts
+                      </span>
+                      <strong className="mt-1 block text-sm font-semibold text-[var(--color-text-primary)]">
+                        {new Date(`${startDate}T12:00:00`).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                      </strong>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveBoundary('end')}
+                      className={`bg-[var(--color-surface)] p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] ${
+                        activeBoundary === 'end' ? 'shadow-[inset_0_-2px_0_var(--color-primary)]' : ''
+                      }`}
+                    >
+                      <span className="block font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                        Ends
+                      </span>
+                      <strong className="mt-1 block text-sm font-semibold text-[var(--color-text-primary)]">
+                        {new Date(`${endDate}T12:00:00`).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                      </strong>
+                    </button>
+                  </div>
+
+                  <AvailabilityCalendar
+                    billboardId={billboard.id}
+                    selectedStart={startDate}
+                    selectedEnd={endDate}
+                    activeBoundary={activeBoundary}
+                    onSelectDate={handleCalendarDate}
+                  />
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label htmlFor="drawer-start-time" className="block font-mono text-caption font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
+                        Start time
+                      </label>
                       <input
-                        id="drawer-start-date"
-                        type="date"
-                        value={startDate}
-                        min={todayStr()}
-                        onChange={(e) => { setStartDate(e.target.value); setDateError(''); }}
-                        className="w-full bg-[var(--color-surface)]/50 border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-all font-mono"
+                        id="drawer-start-time"
+                        type="time"
+                        required
+                        value={startTime}
+                        onChange={(event) => { setStartTime(event.target.value); setDateError(''); }}
+                        className="w-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-mono text-sm text-[var(--color-text-primary)] transition-colors focus:border-[var(--color-primary)] focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="drawer-end-time" className="block font-mono text-caption font-semibold uppercase tracking-[0.18em] text-[var(--color-text-secondary)]">
+                        End time
+                      </label>
+                      <input
+                        id="drawer-end-time"
+                        type="time"
+                        required
+                        value={endTime}
+                        onChange={(event) => { setEndTime(event.target.value); setDateError(''); }}
+                        className="w-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 font-mono text-sm text-[var(--color-text-primary)] transition-colors focus:border-[var(--color-primary)] focus:outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label htmlFor="drawer-end-date" className="block font-mono text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.2em] font-semibold">
-                      CAMPAIGN END DATE
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="drawer-end-date"
-                        type="date"
-                        value={endDate}
-                        min={startDate || todayStr()}
-                        onChange={(e) => { setEndDate(e.target.value); setDateError(''); }}
-                        className="w-full bg-[var(--color-surface)]/50 border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-all font-mono"
-                      />
-                    </div>
+                  <div
+                    className="flex min-h-10 items-center gap-2 border-l-2 px-3 text-body-xs"
+                    style={{
+                      borderColor:
+                        availabilityState === 'available'
+                          ? 'var(--color-success)'
+                          : availabilityState === 'unavailable' || availabilityState === 'error'
+                            ? 'var(--color-error)'
+                            : 'var(--color-border-strong)',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {availabilityState === 'checking' ? (
+                      <><LoaderCircle className="h-3.5 w-3.5 animate-spin" /> Checking live inventory…</>
+                    ) : availabilityState === 'available' ? (
+                      <><Check className="h-3.5 w-3.5 text-[var(--color-success)]" /> This time slot is available.</>
+                    ) : availabilityState === 'unavailable' ? (
+                      <><X className="h-3.5 w-3.5 text-[var(--color-error)]" /> This time overlaps an existing reservation.</>
+                    ) : availabilityState === 'error' ? (
+                      <><X className="h-3.5 w-3.5 text-[var(--color-error)]" /> Live availability could not be verified.</>
+                    ) : (
+                      <>Set an end time after the campaign start.</>
+                    )}
                   </div>
                 </div>
 
@@ -260,9 +410,10 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                 {/* Form action button container */}
                 <button
                   type="submit"
-                  className="w-full py-5 bg-[var(--color-primary)] text-[var(--color-text-inverse)] font-bold text-xs uppercase tracking-[0.2em] hover:opacity-90 transition-opacity cursor-pointer"
+                  disabled={availabilityState !== 'available'}
+                  className="w-full cursor-pointer bg-[var(--color-primary)] py-5 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-text-inverse)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  AUTHORIZE ESCROW DISPATCH
+                  {availabilityState === 'checking' ? 'VERIFYING LIVE INVENTORY' : 'AUTHORIZE ESCROW DISPATCH'}
                 </button>
               </form>
             )}
@@ -333,7 +484,7 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                     <div className="flex justify-between">
                       <span className="text-[var(--color-text-muted)]">DURATION PERIOD:</span>
                       <span className="text-[var(--color-text-primary)] font-semibold">
-                        {startDate} to {endDate} ({calculatedDays} Days)
+                        {startDate} {startTime} to {endDate} {endTime} ({calculatedDays} Days)
                       </span>
                     </div>
                   </div>

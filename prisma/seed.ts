@@ -1,12 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { createHash } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// ponytail: SHA-256 is sufficient for demo seeds. Upgrade to bcrypt before production.
-const hash = (pw: string) => createHash('sha256').update(pw).digest('hex');
-
-const DEMO_PASSWORD = hash('password');
+const DEMO_PASSWORD = bcrypt.hashSync('password', 12);
 
 async function main() {
   // ── Users ─────────────────────────────────────────────────────────────────
@@ -168,6 +165,8 @@ async function main() {
       billboardId: 'lag-01',
       startDate: '2026-06-01',
       endDate: '2026-06-15',
+      startAt: new Date('2026-06-01T00:00:00.000Z'),
+      endAt: new Date('2026-06-15T00:00:00.000Z'),
       campaignName: 'Summer Launch Gala',
       clientName: 'Global Brands Inc.',
       totalCost: 7200,
@@ -184,6 +183,8 @@ async function main() {
       billboardId: 'nbo-01',
       startDate: '2026-05-10',
       endDate: '2026-06-10',
+      startAt: new Date('2026-05-10T00:00:00.000Z'),
+      endAt: new Date('2026-06-10T00:00:00.000Z'),
       campaignName: 'Neo-Tokyo Cyberpunk Showcase',
       clientName: 'Sora Dynamics',
       totalCost: 8700,
@@ -200,6 +201,8 @@ async function main() {
       billboardId: 'cpt-01',
       startDate: '2026-04-01',
       endDate: '2026-04-30',
+      startAt: new Date('2026-04-01T00:00:00.000Z'),
+      endAt: new Date('2026-04-30T00:00:00.000Z'),
       campaignName: 'Autumn Couture Launch',
       clientName: 'Vanguard Atelier',
       totalCost: 10500,

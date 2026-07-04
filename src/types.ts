@@ -21,6 +21,8 @@ export interface Booking {
   billboardId: string;
   startDate: string;
   endDate: string;
+  startAt?: string;
+  endAt?: string;
   campaignName: string;
   clientName: string;
   totalCost: number;
@@ -69,4 +71,3 @@ export interface User {
   website?: string;
   emailVerified?: boolean;
 }
-

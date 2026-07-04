@@ -91,6 +91,8 @@ model Booking {
   billboard    Billboard     @relation(fields: [billboardId], references: [id])
   startDate    String
   endDate      String
+  startAt      DateTime?
+  endAt        DateTime?
   campaignName String
   clientName   String
   totalCost    Float
@@ -98,6 +100,8 @@ model Booking {
   slogan       String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  @@index([billboardId, startAt, endAt])
 }
 
 model GatewayLog {
