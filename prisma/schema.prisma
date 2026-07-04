@@ -1,0 +1,113 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  advertiser
+  vendor
+  admin
+  investor
+}
+
+enum BillboardStatus {
+  Available
+  FullyBooked
+  Maintenance
+}
+
+enum BookingStatus {
+  PendingApproved
+  Live
+  Completed
+}
+
+enum TrafficVolume {
+  High
+  VeryHigh
+  Mega
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  DELETE
+}
+
+enum ApiModule {
+  Auth
+  Billboards
+  Bookings
+  Payments
+  Analytics
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          UserRole
+  company       String?
+  avatar        String?
+  bio           String?
+  phone         String?
+  location      String?
+  website       String?
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Billboard {
+  id                 String          @id
+  title              String
+  location           String
+  city               String
+  country            String
+  dailyRate          Float
+  format             String
+  dimensions         String
+  monthlyImpressions String
+  trafficVolume      TrafficVolume
+  status             BillboardStatus @default(Available)
+  lat                Float
+  lng                Float
+  imageUrl           String
+  description        String
+  bookings           Booking[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  billboardId  String
+  billboard    Billboard     @relation(fields: [billboardId], references: [id])
+  startDate    String
+  endDate      String
+  campaignName String
+  clientName   String
+  totalCost    Float
+  status       BookingStatus @default(PendingApproved)
+  slogan       String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model GatewayLog {
+  id        String     @id @default(cuid())
+  timestamp String
+  method    HttpMethod
+  endpoint  String
+  module    ApiModule
+  status    Int
+  latencyMs Int
+  payload   String?
+  createdAt DateTime   @default(now())
+}

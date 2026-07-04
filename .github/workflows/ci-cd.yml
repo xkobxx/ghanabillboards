@@ -1,0 +1,72 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint || true
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: ./services/auth
+
+      - name: Run migrations
+        run: npx prisma db push
+        working-directory: ./services/auth
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy Services
+        run: |
+          echo "Deploying microservices..."
+          # Add your deployment commands here
+          # e.g., Railway, Vercel, AWS, etc.
+
+      - name: Deploy Frontend
+        run: |
+          echo "Deploying frontend..."
+          # Add your deployment commands here
+          
+      # Note: For Auth0 integration, ensure these secrets are configured in your deployment platform:
+      # AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_SECRET, APP_BASE_URL

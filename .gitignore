@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files (contains secrets — NEVER commit)
+.env
+.env.local
+.env.*.local
+
+# macOS resource forks
+._*
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+
+# Debug
+npm-debug.log*
+
+# Misc
+*.pem

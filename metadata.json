@@ -1,0 +1,10 @@
+{
+  "name": "Remix: Remix: Billboard Marketplace",
+  "description": "A high-performance cinematic platform for multi-location billboard discovery, real-time booking, and automated campaign metrics.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

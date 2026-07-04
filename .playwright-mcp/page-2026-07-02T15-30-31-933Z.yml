@@ -1,0 +1,147 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - link "Vantage Point home" [ref=f3e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f3e9]:
+          - generic [ref=f3e10]: Vantage Point
+          - generic [ref=f3e11]: OOH Programmatic Exchange
+      - navigation "Primary navigation" [ref=f3e12]:
+        - link "Overview" [ref=f3e13] [cursor=pointer]:
+          - /url: /
+          - text: Overview
+        - link "Advertiser" [ref=f3e15] [cursor=pointer]:
+          - /url: /advertiser
+          - text: Advertiser
+        - link "Vendor" [ref=f3e17] [cursor=pointer]:
+          - /url: /vendor
+          - text: Vendor
+      - generic [ref=f3e19]:
+        - button "Sign in" [ref=f3e20]
+        - button "Register" [ref=f3e21]
+        - button "Switch to cinematic dark mode" [ref=f3e22] [cursor=pointer]:
+          - img [ref=f3e23]
+          - img [ref=f3e29]
+  - banner [ref=f3e31]:
+    - img "Billboard advertising on city skyline at dusk" [ref=f3e32]
+    - generic:
+      - img "Billboard detail"
+    - generic [ref=f3e34]:
+      - generic [ref=f3e37]: The Global OOH Exchange
+      - heading "Billboard Advertising" [level=1] [ref=f3e39]:
+        - text: Billboard
+        - text: Advertising
+      - generic [ref=f3e40]:
+        - paragraph [ref=f3e41]: Orchestrate premium out-of-home campaigns across the world's most desired metropolitan canvases.
+        - button "Scroll to Explore" [ref=f3e42] [cursor=pointer]:
+          - img [ref=f3e44]
+          - generic [ref=f3e46]: Scroll to Explore
+  - main [ref=f3e47]:
+    - generic [ref=f3e48]:
+      - generic [ref=f3e50]: REGIONAL DISCOVERY GRID [OOH-GATEWAY]
+      - generic [ref=f3e52]:
+        - generic [ref=f3e54]:
+          - combobox [ref=f3e55] [cursor=pointer]:
+            - option "All Locations" [selected]
+            - option "Lagos"
+            - option "Accra"
+            - option "Nairobi"
+            - option "Johannesburg"
+            - option "Cape Town"
+          - combobox [ref=f3e57] [cursor=pointer]:
+            - option "All Formats" [selected]
+            - option "Digital LED"
+            - option "Static Mega"
+            - option "Spectacular Bridge"
+            - option "Portrait Pillar"
+          - combobox [ref=f3e59] [cursor=pointer]:
+            - option "No Proximity" [selected]
+            - option "By Landmark"
+            - option "By GPS"
+            - option "By Pin"
+          - generic [ref=f3e60]:
+            - button "dark" [ref=f3e61] [cursor=pointer]
+            - button "Street" [ref=f3e62] [cursor=pointer]
+            - button "satellite" [ref=f3e63] [cursor=pointer]
+          - generic [ref=f3e64]:
+            - generic [ref=f3e65]: 5 nodes
+            - generic [ref=f3e66]: ·
+            - generic [ref=f3e67]:
+              - generic [ref=f3e68]: 12.5M
+              - text: reach
+          - button "Show node list" [ref=f3e69] [cursor=pointer]:
+            - img [ref=f3e70]
+          - button "Immersive view" [ref=f3e72] [cursor=pointer]:
+            - img [ref=f3e73]
+        - generic [ref=f3e80]:
+          - generic:
+            - generic:
+              - button "LED" [ref=f3e81] [cursor=pointer]:
+                - generic [ref=f3e82]: LED
+              - button "BRG" [ref=f3e83] [cursor=pointer]:
+                - generic [ref=f3e84]: BRG
+              - button "LED" [ref=f3e85] [cursor=pointer]:
+                - generic [ref=f3e86]: LED
+              - button "PIL" [ref=f3e87] [cursor=pointer]:
+                - generic [ref=f3e88]: PIL
+              - button "STM" [ref=f3e89] [cursor=pointer]:
+                - generic [ref=f3e90]: STM
+          - generic [ref=f3e91]:
+            - button "Zoom in" [ref=f3e92] [cursor=pointer]: +
+            - button "Zoom out" [ref=f3e93] [cursor=pointer]: −
+    - generic [ref=f3e94]:
+      - generic [ref=f3e95]: Queue Status
+      - generic [ref=f3e96]:
+        - generic [ref=f3e97]: ★
+        - generic [ref=f3e98]:
+          - heading "Your Active Scheduled Campaigns" [level=4] [ref=f3e99]
+          - paragraph [ref=f3e100]: SECURE ESCROW RELEASES IN QUEUE
+      - generic [ref=f3e101]:
+        - generic [ref=f3e102]:
+          - generic [ref=f3e103]:
+            - generic [ref=f3e104]: "\"Summer Launch Gala\""
+            - generic [ref=f3e105]: $7,200
+          - generic [ref=f3e106]:
+            - generic [ref=f3e107]: "Billboard: Lekki Toll Gate Mega Plaza LED"
+            - generic [ref=f3e108]: "Client: Global Brands Inc."
+          - generic [ref=f3e109]:
+            - generic [ref=f3e110]: 2026-06-01 to 2026-06-15
+            - generic [ref=f3e111]: SECURED
+        - generic [ref=f3e112]:
+          - generic [ref=f3e113]:
+            - generic [ref=f3e114]: "\"Neo-Tokyo Cyberpunk Showcase\""
+            - generic [ref=f3e115]: $8,700
+          - generic [ref=f3e116]:
+            - generic [ref=f3e117]: "Billboard: Nairobi CBD Uhuru Highway Ring LED"
+            - generic [ref=f3e118]: "Client: Sora Dynamics"
+          - generic [ref=f3e119]:
+            - generic [ref=f3e120]: 2026-05-10 to 2026-06-10
+            - generic [ref=f3e121]: SECURED
+        - generic [ref=f3e122]:
+          - generic [ref=f3e123]:
+            - generic [ref=f3e124]: "\"Autumn Couture Launch\""
+            - generic [ref=f3e125]: $10,500
+          - generic [ref=f3e126]:
+            - generic [ref=f3e127]: "Billboard: Cape Town N1 Highway Gateway Arch"
+            - generic [ref=f3e128]: "Client: Vanguard Atelier"
+          - generic [ref=f3e129]:
+            - generic [ref=f3e130]: 2026-04-01 to 2026-04-30
+            - generic [ref=f3e131]: SECURED
+  - contentinfo [ref=f3e132]:
+    - generic [ref=f3e133]:
+      - generic [ref=f3e134]:
+        - generic [ref=f3e138]: Vantage Point
+        - paragraph [ref=f3e139]: The premium programmatic exchange platform connecting international media agencies with strategic metropolitan billboards across developing trade regions.
+      - generic [ref=f3e140]:
+        - generic [ref=f3e141]: SYSTEM METRIC NODES
+        - generic [ref=f3e142]:
+          - generic [ref=f3e143] [cursor=pointer]: • Lagos [NGR-LG-01]
+          - generic [ref=f3e144] [cursor=pointer]: • Accra [GHA-ACC-01]
+          - generic [ref=f3e145] [cursor=pointer]: • Nairobi [KEN-NBO-01]
+          - generic [ref=f3e146] [cursor=pointer]: • Sandton [RSA-JNB-01]
+      - generic [ref=f3e147]:
+        - generic [ref=f3e148]: REGULATORY PROTECTION
+        - paragraph [ref=f3e149]: All transactional programmatic booking values are protected by escrow. Early factoring, multi-regional payment settlements in partnership with Paystack clearance models.
+    - generic [ref=f3e150]:
+      - generic [ref=f3e151]: © 2026 VANTAGE POINT. ALL RIGHTS RESERVED.
+      - generic [ref=f3e152]: Designed with absolute cinematic discipline

@@ -1,0 +1,94 @@
+- generic [ref=f5e3]:
+  - navigation "Primary navigation" [ref=f5e4]:
+    - link "Vantage Point" [ref=f5e5] [cursor=pointer]:
+      - /url: /#home
+      - img [ref=f5e7]
+      - generic [ref=f5e12]: Vantage Point
+    - generic [ref=f5e13]:
+      - link "Public" [ref=f5e14] [cursor=pointer]:
+        - /url: "#home"
+      - link "Booking" [ref=f5e15] [cursor=pointer]:
+        - /url: /booking
+      - link "Advertiser" [ref=f5e16] [cursor=pointer]:
+        - /url: /advertiser
+      - link "Vendor" [ref=f5e17] [cursor=pointer]:
+        - /url: /vendor
+      - link "Admin" [ref=f5e18] [cursor=pointer]:
+        - /url: /admin
+      - link "Investor" [ref=f5e19] [cursor=pointer]:
+        - /url: /investor
+    - generic [ref=f5e20]:
+      - button "TA Test Advertiser" [ref=f5e22] [cursor=pointer]:
+        - generic [ref=f5e23]: TA
+        - generic [ref=f5e24]: Test Advertiser
+        - img [ref=f5e25]
+      - button "Switch to light mode" [ref=f5e27] [cursor=pointer]:
+        - img [ref=f5e29]
+  - generic [ref=f5e33]:
+    - generic [ref=f5e35]:
+      - combobox [ref=f5e36] [cursor=pointer]:
+        - option "All Locations" [selected]
+        - option "Lagos"
+        - option "Accra"
+        - option "Nairobi"
+        - option "Johannesburg"
+        - option "Cape Town"
+      - combobox [ref=f5e38] [cursor=pointer]:
+        - option "All Formats" [selected]
+        - option "Digital LED"
+        - option "Static Mega"
+        - option "Spectacular Bridge"
+        - option "Portrait Pillar"
+      - combobox [ref=f5e40] [cursor=pointer]:
+        - option "No Proximity" [selected]
+        - option "By Landmark"
+        - option "By GPS"
+        - option "By Pin"
+      - generic [ref=f5e41]:
+        - button "dark" [ref=f5e42] [cursor=pointer]
+        - button "Street" [ref=f5e43] [cursor=pointer]
+        - button "satellite" [ref=f5e44] [cursor=pointer]
+      - generic [ref=f5e45]:
+        - generic [ref=f5e46]: 5 nodes
+        - generic [ref=f5e47]: ·
+        - generic [ref=f5e48]:
+          - generic [ref=f5e49]: 12.5M
+          - text: reach
+      - button "Show node list" [ref=f5e50] [cursor=pointer]:
+        - img [ref=f5e51]
+      - button "Immersive view" [ref=f5e53] [cursor=pointer]:
+        - img [ref=f5e54]
+    - generic [ref=f5e61]:
+      - generic:
+        - generic:
+          - button "LED" [ref=f5e62] [cursor=pointer]:
+            - generic [ref=f5e63]: LED
+          - button "BRG" [ref=f5e64] [cursor=pointer]:
+            - generic [ref=f5e65]: BRG
+          - button "LED" [ref=f5e66] [cursor=pointer]:
+            - generic [ref=f5e67]: LED
+          - button "PIL" [ref=f5e68] [cursor=pointer]:
+            - generic [ref=f5e69]: PIL
+          - button "STM" [ref=f5e70] [cursor=pointer]:
+            - generic [ref=f5e71]: STM
+      - generic [ref=f5e72]:
+        - button "Zoom in" [ref=f5e73] [cursor=pointer]: +
+        - button "Zoom out" [ref=f5e74] [cursor=pointer]: −
+  - contentinfo [ref=f5e75]:
+    - generic [ref=f5e76]:
+      - generic [ref=f5e77]:
+        - generic [ref=f5e81]: Vantage Point
+        - paragraph [ref=f5e82]: The premium programmatic exchange platform connecting international media agencies with strategic metropolitan billboards across developing trade regions.
+      - generic [ref=f5e83]:
+        - generic [ref=f5e84]: SYSTEM METRIC NODES
+        - generic [ref=f5e85]:
+          - generic [ref=f5e86] [cursor=pointer]: • Lagos [NGR-LG-01]
+          - generic [ref=f5e87] [cursor=pointer]: • Accra [GHA-ACC-01]
+          - generic [ref=f5e88] [cursor=pointer]: • Nairobi [KEN-NBO-01]
+          - generic [ref=f5e89] [cursor=pointer]: • Sandton [RSA-JNB-01]
+      - generic [ref=f5e90]:
+        - generic [ref=f5e91]: REGULATORY PROTECTION
+        - paragraph [ref=f5e92]: All transactional programmatic booking values are protected by escrow. Early factoring, multi-regional payment settlements in partnership with Paystack clearance models.
+    - generic [ref=f5e93]:
+      - generic [ref=f5e94]: © 2026 VANTAGE POINT. ALL RIGHTS RESERVED.
+      - generic [ref=f5e95]: Designed with absolute cinematic discipline
