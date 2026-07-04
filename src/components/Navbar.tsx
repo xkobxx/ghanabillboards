@@ -6,16 +6,6 @@ import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
 import type { UserDropdownItem } from './UserDropdown';
 
-const HASH_LINKS = [
-  { href: 'home', label: 'Public' },
-];
-
-const ROLE_LINKS = [
-  { to: '/advertiser', label: 'Advertiser' },
-  { to: '/vendor', label: 'Vendor' },
-  { to: '/admin', label: 'Admin' },
-  { to: '/investor', label: 'Investor' },
-];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,43 +13,21 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { currentUser, signOut, setAuthMode } = useApp();
 
-  const scrollTo = (id: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    if (location.pathname === '/') {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate(`/#${id}`);
-    }
-  };
-
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className={`vp-nav${menuOpen ? ' is-open' : ''}`} aria-label="Primary navigation">
       {/* Brand */}
-      <a className="vp-brand" href="/#home" onClick={scrollTo('home')}>
+      <a className="vp-brand" href="/">
         <span className="vp-mark"><ScanLine /></span>
         <span>Vantage Point</span>
       </a>
 
       {/* Desktop nav links */}
       <div className="vp-nav-links">
-        {HASH_LINKS.map(({ href, label }) => (
-          <a key={href} href={`#${href}`} onClick={scrollTo(href)}
-            className={location.pathname === '/' ? '' : ''}>
-            {label}
-          </a>
-        ))}
         <Link to="/booking" className={isActive('/booking') ? 'active' : ''}>
-          Booking
+          Billboards
         </Link>
-        {ROLE_LINKS.map(({ to, label }) => (
-          <Link key={to} to={to} className={isActive(to) ? 'active' : ''}>
-            {label}
-          </Link>
-        ))}
       </div>
 
       {/* Desktop actions */}
@@ -91,19 +59,10 @@ export default function Navbar() {
 
       {/* Mobile dropdown */}
       <div className="vp-mobile-links" role="dialog" aria-label="Navigation menu">
-        {HASH_LINKS.map(({ href, label }) => (
-          <a key={href} href={`#${href}`} onClick={scrollTo(href)}>{label}</a>
-        ))}
         <Link to="/booking" onClick={() => setMenuOpen(false)}
           className={isActive('/booking') ? 'active' : ''}>
-          Booking
+          Billboards
         </Link>
-        {ROLE_LINKS.map(({ to, label }) => (
-          <Link key={to} to={to} onClick={() => setMenuOpen(false)}
-            className={isActive(to) ? 'active' : ''}>
-            {label}
-          </Link>
-        ))}
         <div className="vp-mobile-actions">
           {currentUser ? (
             <UserDropdown
