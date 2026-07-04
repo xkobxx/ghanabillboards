@@ -1,8 +1,0 @@
-[     335ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/node_modules/.vite/deps/react-dom_client.js?v=d79a2a2f:20102
-[    4717ms] TypeError: e.target.closest is not a function
-    at HTMLDocument.handleHoverEnd (http://localhost:3001/src/App.tsx?t=1783083758440:88:21)
-[    5003ms] TypeError: e.target.closest is not a function
-    at HTMLDocument.handleHoverStart (http://localhost:3001/src/App.tsx?t=1783083758440:83:21)
-[   10453ms] TypeError: e.target.closest is not a function
-    at HTMLDocument.handleHoverEnd (http://localhost:3001/src/App.tsx?t=1783083758440:88:21)
-[  330035ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/node_modules/.vite/deps/react-dom_client.js?v=d79a2a2f:20102
