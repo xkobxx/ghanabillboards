@@ -12,20 +12,20 @@ The Out-of-Home (OOH) advertising sector in Sub-Saharan Africa is a rapidly grow
 **Vantage Point** is the digital operating framework and programmatic marketplace designed to unify this fragmented supply. By introducing a Map-First Discovery Engine, instant transaction scheduling, and real-time mobility telemetry, Vantage Point slashes the OOH campaign lifecycle from **18 days to 4.5 minutes**. 
 
 The platform bridges three critical pillars of the advertising value chain:
-1. **The Advertiser (Demand-Side)**: Agencies and brands seeking rapid discoverability, transparent traffic metrics, and friction-free booking.
-2. **The Vendor (Supply-Side)**: Media owners looking to maximize occupancy, track live inventory health, and automate invoicing.
+1. **The Buyer (Demand-Side)**: Agencies and brands seeking rapid discoverability, transparent traffic metrics, and friction-free booking.
+2. **The Publisher (Supply-Side)**: Media owners looking to maximize occupancy, track live inventory health, and automate invoicing.
 3. **The Platform Admin (Gateway Operator)**: Operational staff monitoring system latencies, payload safety, API usage, and market-clearing operations.
 
 ---
 
 ## 2. Core User Roles & Personas
 
-### 2.1. The Advertiser (Demand-Side)
+### 2.1. The Buyer (Demand-Side)
 *   **User Goal**: Quickly deploy a localized, multi-city ad campaign without dealing with multiple fragmented operators.
 *   **Key Pain Points**: No transparent view of billboard availability; lacks verifiable transit analytics; opaque and slow billing processes.
 *   **Behavior in Platform**: Searches the interactive marketplace, filters inventory by format and traffic level, specifies flight dates, calculates campaign cost, and places immediate, secure bookings.
 
-### 2.2. The Vendor (Supply-Side Partner)
+### 2.2. The Publisher (Supply-Side Partner)
 *   **User Goal**: Keep static and digital billboards at maximum occupancy while minimizing administrative overhead.
 *   **Key Pain Points**: Manual invoicing delays; high empty-calendar rate; lack of tools to easily broadcast slot availability.
 *   **Behavior in Platform**: Reviews incoming booking requests, manages inventory parameters (dimensions, daily rates, formats), toggles operational status (Available, Maintenance), and monitors gross billing.
@@ -70,10 +70,7 @@ Vantage Point is designed around a **Modular Monolith** structure. This design i
 
 ### 4.1. Interactive Discovery Engine (Marketplace)
 *   **Geospatial Visualization**: Displays an interactive map or grid interface indicating node distribution.
-*   **Multi-Criteria Filtering**: Advertisers can narrow listings by:
-    *   **City**: Lagos, Accra, Nairobi, Johannesburg, Cape Town.
-    *   **Format**: Digital LED, Static Mega, Spectacular Bridge, Portrait Pillar.
-    *   **Traffic Volume**: Mega, Very High, High.
+*     *   **Traffic Volume**: Mega, Very High, High.
     *   **Price Range**: Slide controls reflecting daily rate bounds.
 *   **Rich Asset Cards**: Each card details:
     *   High-resolution contextual imagery.
@@ -89,9 +86,9 @@ Vantage Point is designed around a **Modular Monolith** structure. This design i
     *   **Flight Dates** (Start & End dates).
 *   **Real-time Escrow Initialization**: Commits the booking state to "Pending Approved" and schedules calendar locks.
 
-### 4.3. Vendor Inventory Dashboard (Supply Hub)
-*   **Operational Inventory List**: Lists assets assigned to the vendor, including performance stats.
-*   **Interactive Status Toggles**: Allows vendors to mark nodes under "Maintenance" or set active availability with live updates.
+### 4.3. Publisher Inventory Dashboard (Supply Hub)
+*   **Operational Inventory List**: Lists assets assigned to the publisher, including performance stats.
+*   **Interactive Status Toggles**: Allows publishers to mark nodes under "Maintenance" or set active availability with live updates.
 *   **Financial Summary**: Tracks total gross revenue accumulated across "Approved" or "Live" campaign bookings.
 *   **Parameter Customization**: Enables direct updates to pricing structure, daily rates, and format settings.
 

@@ -21,7 +21,7 @@ Browser (SPA) ──▶ Express Gateway (:4000) ──▶ PostgreSQL
      /api/auth    /api/billboards  /api/bookings
 ```
 
-The frontend is a Vite SPA on `:3000`. The Express gateway on `:4000` handles authentication, authorization, and all data access. Role-based access control gates vendor, admin, advertiser, and investor dashboards.
+The frontend is a Vite SPA on `:3000`. The Express gateway on `:4000` handles authentication, authorization, and all data access. Role-based access control gates publisher, admin, buyer, and investor dashboards.
 
 ## Quick Start
 
@@ -76,7 +76,7 @@ server/
     validate.ts   Zod schema validation
   routes/
     auth.ts       POST /register, POST /login, GET /me
-    billboards.ts CRUD with vendor/admin guards
+    billboards.ts CRUD with publisher/admin guards
     bookings.ts   CRUD with role-scoped access
 prisma/
   schema.prisma   Data model (User, Billboard, Booking, GatewayLog)
@@ -99,17 +99,17 @@ prisma/
 |--------|------|------|-------|
 | GET | `/api/billboards` | Public | — |
 | GET | `/api/billboards/:id` | Public | — |
-| POST | `/api/billboards` | Bearer | vendor, admin |
-| PATCH | `/api/billboards/:id` | Bearer | vendor, admin |
-| DELETE | `/api/billboards/:id` | Bearer | vendor, admin |
+| POST | `/api/billboards` | Bearer | publisher, admin |
+| PATCH | `/api/billboards/:id` | Bearer | publisher, admin |
+| DELETE | `/api/billboards/:id` | Bearer | publisher, admin |
 
 ### Bookings
 
 | Method | Path | Auth | Roles |
 |--------|------|------|-------|
 | GET | `/api/bookings` | Bearer | Any (admin sees all) |
-| POST | `/api/bookings` | Bearer | advertiser, admin |
-| PATCH | `/api/bookings/:id/status` | Bearer | vendor, admin |
+| POST | `/api/bookings` | Bearer | buyer, admin |
+| PATCH | `/api/bookings/:id/status` | Bearer | publisher, admin |
 
 ## Demo Credentials
 
@@ -117,8 +117,8 @@ After seeding, log in with password `password`:
 
 | Role | Email |
 |------|-------|
-| Advertiser | `advertiser@vantagepoint.com` |
-| Vendor | `publisher@vantagepoint.com` |
+| Buyer | `buyer@vantagepoint.com` |
+| Publisher | `publisher@vantagepoint.com` |
 | Admin | `admin@vantagepoint.com` |
 | Investor | `investor@vantagepoint.com` |
 

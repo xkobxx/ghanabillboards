@@ -4,18 +4,18 @@ interface RoleCardProps {
   desc: string;
   label: string;
   href: string;
-  illustration: 'advertiser' | 'vendor' | 'admin';
+  illustration: 'buyer' | 'publisher' | 'admin';
 }
 
 const illustrations = {
-  advertiser: (
+  buyer: (
     <svg viewBox="0 0 48 48" fill="none" className="w-full h-full">
       <rect x="6" y="12" width="36" height="24" rx="3" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
       <rect x="12" y="18" width="24" height="12" rx="2" stroke="currentColor" strokeWidth="1" strokeOpacity="0.2" />
       <rect x="16" y="22" width="16" height="4" rx="1" fill="currentColor" fillOpacity="0.15" />
     </svg>
   ),
-  vendor: (
+  publisher: (
     <svg viewBox="0 0 48 48" fill="none" className="w-full h-full">
       <rect x="6" y="8" width="36" height="32" rx="4" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
       <rect x="12" y="14" width="12" height="10" rx="2" fill="currentColor" fillOpacity="0.12" />

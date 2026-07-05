@@ -4,11 +4,16 @@ import { X, ShieldCheck, Building2, Check, CreditCard, Receipt, Clock3, LoaderCi
 import { motion, AnimatePresence } from 'motion/react';
 import AvailabilityCalendar from './AvailabilityCalendar';
 import { getBillboardAvailability } from '../lib/availabilityApi';
+import type { BillingCurrency } from '../types/buyerSettings';
+import { exceedsBudgetCap, formatUsdInCurrency } from '../lib/money';
 
 interface BookingDrawerProps {
   billboard: Billboard | null;
   onClose: () => void;
   onConfirmBooking: (booking: Booking) => void;
+  defaultFlightDays?: number;
+  billingCurrency?: BillingCurrency;
+  budgetCapMinor?: number | null;
 }
 
 function todayStr() {
@@ -24,12 +29,19 @@ function localDateTime(date: string, time: string) {
   return new Date(`${date}T${time}:00`);
 }
 
-export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: BookingDrawerProps) {
+export default function BookingDrawer({
+  billboard,
+  onClose,
+  onConfirmBooking,
+  defaultFlightDays = 14,
+  billingCurrency = 'USD',
+  budgetCapMinor = null,
+}: BookingDrawerProps) {
   const [campaignName, setCampaignName] = useState('');
   const [clientName, setClientName] = useState('');
   const [slogan, setSlogan] = useState('');
   const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(() => daysFromNow(14));
+  const [endDate, setEndDate] = useState(() => daysFromNow(defaultFlightDays));
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
   const [activeBoundary, setActiveBoundary] = useState<'start' | 'end'>('start');
@@ -68,6 +80,12 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
     return () => controller.abort();
   }, [billboard, startDate, startTime, endDate, endTime]);
 
+  useEffect(() => {
+    if (!billboard) return;
+    setStartDate(todayStr());
+    setEndDate(daysFromNow(defaultFlightDays));
+  }, [billboard, defaultFlightDays]);
+
   if (!billboard) return null;
 
   // Calculate day difference
@@ -76,11 +94,16 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
   const diffTime = Math.abs(end.getTime() - start.getTime());
   const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
   const totalCost = calculatedDays * billboard.dailyRate;
+  const overBudget = exceedsBudgetCap(totalCost, billingCurrency, budgetCapMinor);
 
   // Process transaction sequence
   const handleInitiatePayout = (e: React.FormEvent) => {
     e.preventDefault();
     if (!campaignName || !clientName) return;
+    if (overBudget) {
+      setDateError(`This booking exceeds your ${billingCurrency} account budget cap.`);
+      return;
+    }
     if (startDate < todayStr()) { setDateError('Start date cannot be in the past.'); return; }
     const startAt = localDateTime(startDate, startTime);
     const endAt = localDateTime(endDate, endTime);
@@ -128,7 +151,7 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
     setSlogan('');
     setDateError('');
     setStartDate(todayStr());
-    setEndDate(daysFromNow(14));
+    setEndDate(daysFromNow(defaultFlightDays));
     setStartTime('09:00');
     setEndTime('17:00');
     setActiveBoundary('start');
@@ -209,7 +232,7 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                 <p className="text-[var(--color-text-secondary)] text-xs truncate">{billboard.location}</p>
                 <div className="font-mono text-caption text-[var(--color-text-muted)] flex items-center gap-3 pt-1">
                   <span>DIM: {billboard.dimensions}</span>
-                  <span>RATE: ${billboard.dailyRate}/DAY</span>
+                  <span>RATE: {formatUsdInCurrency(billboard.dailyRate, billingCurrency)}/DAY</span>
                 </div>
               </div>
             </div>
@@ -393,7 +416,7 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                   <div className="flex justify-between items-end">
                     <span className="font-sans text-xs uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">Total Programmatic Escrow Amount:</span>
                     <span className="text-3xl font-sans font-light text-[var(--color-text-primary)] tracking-tight">
-                      ${totalCost.toLocaleString()}
+                      {formatUsdInCurrency(totalCost, billingCurrency)}
                     </span>
                   </div>
                 </div>
@@ -410,10 +433,14 @@ export default function BookingDrawer({ billboard, onClose, onConfirmBooking }: 
                 {/* Form action button container */}
                 <button
                   type="submit"
-                  disabled={availabilityState !== 'available'}
+                  disabled={availabilityState !== 'available' || overBudget}
                   className="w-full cursor-pointer bg-[var(--color-primary)] py-5 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-text-inverse)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {availabilityState === 'checking' ? 'VERIFYING LIVE INVENTORY' : 'AUTHORIZE ESCROW DISPATCH'}
+                  {overBudget
+                    ? 'ABOVE ACCOUNT BUDGET CAP'
+                    : availabilityState === 'checking'
+                      ? 'VERIFYING LIVE INVENTORY'
+                      : 'AUTHORIZE ESCROW DISPATCH'}
                 </button>
               </form>
             )}

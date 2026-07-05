@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 — Architectural Blueprint (How It Works)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/urbanist@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5/index.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --vp-primary: #0D9488;
+  --vp-primary-hover: #08786B;
+  --vp-primary-ink: #FFFFFF;
+  --vp-primary-line: rgba(13,148,136,0.42);
+  --vp-primary-bg: rgba(13,148,136,0.08);
+  --vp-primary-glow: rgba(13,148,136,0.14);
+  --vp-bg: #FFFFFF;
+  --vp-bg-alt: #F2F5F8;
+  --vp-bg-dark: #E8ECF2;
+  --vp-ink: #000000;
+  --vp-muted: #515151;
+  --vp-dim: #999999;
+  --vp-line: #E0E0E0;
+  --vp-line2: #CCCCCC;
+  --vp-panel: #F5F7FA;
+  --vp-panel-hover: #E8ECF2;
+  --vp-cyan: #0D9488;
+  --vp-cyan-light: rgba(13,148,136,0.18);
+  --vp-blueprint-grid: rgba(13,148,136,0.06);
+  --vp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-heading: 'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+}
+
+html { background: var(--vp-bg); }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--vp-ink);
+  min-height: 100vh;
+  padding: 100px 32px;
+  background:
+    /* blueprint grid */
+    linear-gradient(var(--vp-blueprint-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--vp-blueprint-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* large blueprint accent lines */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background:
+    linear-gradient(var(--vp-cyan-light) 2px, transparent 2px),
+    linear-gradient(90deg, var(--vp-cyan-light) 2px, transparent 2px);
+  background-size: 120px 120px;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.section-head { margin-bottom: 80px; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-sans); font-weight: 800; font-size: 11px; line-height: 1;
+  text-transform: uppercase; letter-spacing: .16em; color: var(--vp-primary);
+  margin-bottom: 20px;
+}
+.eyebrow::before {
+  content: ""; width: 32px; height: 1px; background: var(--vp-primary);
+}
+
+.section-head h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 3.5vw, 52px); font-weight: 700;
+  line-height: 1.06; letter-spacing: -.04em; margin-bottom: 16px;
+}
+.section-head .lead {
+  color: var(--vp-muted); font-size: clamp(15px, 1.2vw, 18px); line-height: 1.6; max-width: 560px;
+}
+
+/* ── BLUEPRINT FLOW ── */
+.blueprint-flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  position: relative;
+}
+
+/* horizontal blueprint connecting line */
+.blueprint-flow::before {
+  content: ""; position: absolute; top: 68px; left: 16%; right: 16%; height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--vp-primary-line) 0px,
+    var(--vp-primary-line) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  z-index: 0;
+}
+
+/* vertical connector for 2-row layout */
+.blueprint-flow::after {
+  content: ""; position: absolute; left: 50%; top: 8%; bottom: 8%; width: 1px;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--vp-primary-line) 0px,
+    var(--vp-primary-line) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  z-index: 0;
+  opacity: .5;
+}
+
+.step {
+  position: relative; z-index: 1;
+  background: var(--vp-bg);
+  border: 1px solid var(--vp-line);
+  overflow: hidden;
+  transition: transform .4s var(--vp-ease), box-shadow .4s var(--vp-ease), border-color .35s var(--vp-ease);
+}
+
+.step:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 48px -16px rgba(13,148,136,.22);
+  border-color: var(--vp-primary-line);
+}
+
+/* Image area */
+.step-image {
+  position: relative; height: 180px; overflow: hidden;
+  background-size: cover; background-position: center;
+  transition: transform .6s var(--vp-ease);
+}
+.step:hover .step-image { transform: scale(1.06); }
+
+/* Cyanotype overlay */
+.step-image::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(13,148,136,0.25) 0%,
+    rgba(13,148,136,0.08) 40%,
+    rgba(255,255,255,0.92) 85%,
+    rgba(255,255,255,1) 100%
+  );
+  transition: background .4s var(--vp-ease);
+}
+.step:hover .step-image::after {
+  background: linear-gradient(180deg,
+    rgba(13,148,136,0.15) 0%,
+    rgba(13,148,136,0.04) 40%,
+    rgba(255,255,255,0.84) 85%,
+    rgba(255,255,255,0.96) 100%
+  );
+}
+
+/* Callout number — sits on the image */
+.step-number {
+  position: absolute; top: 16px; left: 16px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--vp-bg); border: 2px solid var(--vp-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-heading); font-weight: 800; font-size: 16px;
+  color: var(--vp-primary);
+  transition: background .3s var(--vp-ease), color .3s var(--vp-ease), transform .3s var(--vp-ease);
+}
+.step:hover .step-number {
+  background: var(--vp-primary); color: var(--vp-primary-ink);
+  transform: scale(1.1);
+}
+
+/* Dimension lines on image */
+.dim-line {
+  position: absolute; z-index: 1; pointer-events: none; opacity: 0;
+  transition: opacity .4s var(--vp-ease);
+}
+.step:hover .dim-line { opacity: 1; }
+.dim-line-h {
+  bottom: 32px; left: 12px; right: 12px; height: 1px;
+  background: var(--vp-primary);
+}
+.dim-line-v {
+  right: 16px; top: 100px; bottom: 100px; width: 1px;
+  background: var(--vp-primary);
+}
+.dim-arrow {
+  position: absolute; width: 6px; height: 6px;
+  border-top: 1.5px solid var(--vp-primary);
+  border-right: 1.5px solid var(--vp-primary);
+}
+.dim-label {
+  position: absolute;
+  font-family: var(--font-sans); font-size: 9px; font-weight: 600;
+  color: var(--vp-primary); letter-spacing: .06em;
+}
+
+.step-body { padding: 24px; position: relative; }
+
+.step-body h3 {
+  font-family: var(--font-heading);
+  font-size: clamp(18px, 1.6vw, 22px); font-weight: 700;
+  letter-spacing: -.03em; margin-bottom: 10px;
+  color: var(--vp-ink);
+}
+
+.step-body p {
+  color: var(--vp-muted); font-size: 13px; line-height: 1.65;
+}
+
+/* Role badge — architectural stamp */
+.role-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 16px; padding: 4px 10px;
+  border: 1px solid var(--vp-line);
+  font-family: var(--font-sans); font-weight: 600; font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--vp-dim);
+  transition: border-color .3s var(--vp-ease), color .3s var(--vp-ease);
+}
+.step:hover .role-badge { border-color: var(--vp-primary-line); color: var(--vp-muted); }
+
+/* ── Blueprint corner marks ── */
+.bp-corner {
+  position: absolute; z-index: 2; pointer-events: none;
+  width: 16px; height: 16px;
+}
+.bp-corner::before, .bp-corner::after {
+  content: ""; position: absolute; background: var(--vp-primary);
+  transition: width .4s var(--vp-ease), height .4s var(--vp-ease);
+  opacity: 0;
+}
+.step:hover .bp-corner::before,
+.step:hover .bp-corner::after { opacity: 1; }
+.bp-tl { top: 0; left: 0; }
+.bp-tl::before { width: 16px; height: 1px; top: 6px; left: 0; }
+.bp-tl::after  { width: 1px; height: 16px; top: 0; left: 6px; }
+.bp-tr { top: 0; right: 0; }
+.bp-tr::before { width: 16px; height: 1px; top: 6px; right: 0; }
+.bp-tr::after  { width: 1px; height: 16px; top: 0; right: 6px; }
+.bp-bl { bottom: 0; left: 0; }
+.bp-bl::before { width: 16px; height: 1px; bottom: 6px; left: 0; }
+.bp-bl::after  { width: 1px; height: 16px; bottom: 0; left: 6px; }
+.bp-br { bottom: 0; right: 0; }
+.bp-br::before { width: 16px; height: 1px; bottom: 6px; right: 0; }
+.bp-br::after  { width: 1px; height: 16px; bottom: 0; right: 6px; }
+
+/* ── Coordinates annotation ── */
+.coords {
+  position: absolute; bottom: 8px; right: 10px; z-index: 2;
+  font-family: var(--font-sans); font-size: 9px; font-weight: 600;
+  color: var(--vp-dim); letter-spacing: .04em;
+  opacity: 0; transition: opacity .3s var(--vp-ease);
+}
+.step:hover .coords { opacity: 1; }
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+  .blueprint-flow { grid-template-columns: repeat(2, 1fr); }
+  .blueprint-flow::after { display: none; }
+}
+@media (max-width: 600px) {
+  body { padding: 60px 16px; }
+  .blueprint-flow { grid-template-columns: 1fr; }
+  .blueprint-flow::before, .blueprint-flow::after { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="section-head">
+    <p class="eyebrow">HOW IT WORKS</p>
+    <h2>From search to live campaign in six steps.</h2>
+    <p class="lead">Deep workflows sit behind each role. Here's the full sequence.</p>
+  </div>
+
+  <div class="blueprint-flow">
+
+    <!-- Step 01 — Search -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">01</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Search</h3>
+        <p>Filter by city, format, traffic volume, and price range.</p>
+        <span class="role-badge">Buyer</span>
+      </div>
+      <span class="coords">S01 · 5.6037°N, 0.1870°W</span>
+    </article>
+
+    <!-- Step 02 — Compare -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">02</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Compare</h3>
+        <p>View specs, daily rates, traffic data, and photos side by side.</p>
+        <span class="role-badge">Buyer</span>
+      </div>
+      <span class="coords">S02 · 5.5600°N, 0.2000°W</span>
+    </article>
+
+    <!-- Step 03 — Price -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">03</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Price</h3>
+        <p>Daily rate × flight duration = total. No fees added at checkout.</p>
+        <span class="role-badge">Buyer</span>
+      </div>
+      <span class="coords">S03 · 6.4500°N, 3.4000°E</span>
+    </article>
+
+    <!-- Step 04 — Schedule -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1534190239940-9ba8944ea631?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">04</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Schedule</h3>
+        <p>Lock calendar dates. A pending booking record is created instantly.</p>
+        <span class="role-badge">Buyer</span>
+      </div>
+      <span class="coords">S04 · 1.2921°S, 36.8219°E</span>
+    </article>
+
+    <!-- Step 05 — Approve -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1572947650440-e8a97ef053b2?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">05</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Approve</h3>
+        <p>Vendor confirms availability and accepts the booking.</p>
+        <span class="role-badge">Vendor</span>
+      </div>
+      <span class="coords">S05 · 6.6905°N, 1.6225°W</span>
+    </article>
+
+    <!-- Step 06 — Report -->
+    <article class="step">
+      <span class="bp-corner bp-tl"></span><span class="bp-corner bp-tr"></span>
+      <span class="bp-corner bp-bl"></span><span class="bp-corner bp-br"></span>
+      <div class="step-image" style="background-image:url('https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=600&q=80')">
+        <span class="step-number">06</span>
+        <span class="dim-line dim-line-h"></span>
+        <span class="dim-line dim-line-v"></span>
+      </div>
+      <div class="step-body">
+        <h3>Report</h3>
+        <p>Campaign goes live. Telemetry tracks delivery status.</p>
+        <span class="role-badge">Both</span>
+      </div>
+      <span class="coords">S06 · 9.0579°N, 7.4951°E</span>
+    </article>
+
+  </div>
+</div>
+</body>
+</html>

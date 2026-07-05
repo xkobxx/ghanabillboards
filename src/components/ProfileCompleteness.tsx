@@ -37,10 +37,10 @@ export default function ProfileCompleteness({ user }: ProfileCompletenessProps) 
         </strong>
       </div>
       <div style={{
-        height: 6, borderRadius: 3, background: 'rgba(255,255,255,.06)', marginTop: 8, overflow: 'hidden',
+        height: 6, borderRadius: 0, background: 'rgba(255,255,255,.06)', marginTop: 8, overflow: 'hidden',
       }}>
         <div style={{
-          height: '100%', borderRadius: 3, width: `${pct}%`,
+          height: '100%', borderRadius: 0, width: `${pct}%`,
           background: steps === 'complete' ? '#a8ff60' : steps === 'strong' ? '#ffe484' : 'rgba(245,240,231,.32)',
           transition: 'width .4s ease',
         }} />

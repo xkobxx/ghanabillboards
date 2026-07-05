@@ -26,8 +26,18 @@ export interface Booking {
   campaignName: string;
   clientName: string;
   totalCost: number;
-  status: 'Pending Approved' | 'Live' | 'Completed';
+  status:
+    | 'Awaiting Creative Review'
+    | 'Awaiting Manager Approval'
+    | 'Pending Approved'
+    | 'Live'
+    | 'Completed'
+    | 'Rejected';
   slogan?: string;
+  creativeApproved?: boolean;
+  creativeAssetName?: string;
+  creativeAssetDataUrl?: string;
+  invoiceCode?: string;
 }
 
 export interface PitchSlide {
@@ -62,7 +72,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'advertiser' | 'vendor' | 'admin' | 'investor';
+  role: 'buyer' | 'publisher' | 'admin' | 'investor';
   company?: string;
   avatar?: string;
   bio?: string;
@@ -70,4 +80,5 @@ export interface User {
   location?: string;
   website?: string;
   emailVerified?: boolean;
+  mfaEnabled?: boolean;
 }

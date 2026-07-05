@@ -251,7 +251,7 @@ describe('authentication dialogs', () => {
     renderSignIn();
 
     expect(
-      screen.queryByRole('button', { name: 'Advertiser demo' }),
+      screen.queryByRole('button', { name: 'Buyer demo' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Publisher demo' }),
@@ -269,7 +269,7 @@ describe('authentication dialogs', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Advertiser demo' }),
+      screen.getByRole('button', { name: 'Buyer demo' }),
     ).toBeVisible();
     expect(
       screen.getByRole('button', { name: 'Publisher demo' }),
@@ -278,12 +278,12 @@ describe('authentication dialogs', () => {
 
   it.each([
     [
-      'Advertiser demo',
+      'Buyer demo',
       {
         id: 'usr_demo_adv',
-        email: 'advertiser@vantagepoint.com',
+        email: 'buyer@vantagepoint.com',
         name: 'Vanguard Brands Corp',
-        role: 'advertiser',
+        role: 'buyer',
         company: 'Vanguard Media Group',
       },
     ],
@@ -293,7 +293,7 @@ describe('authentication dialogs', () => {
         id: 'usr_demo_pub',
         email: 'publisher@vantagepoint.com',
         name: 'Apex OOH Screens',
-        role: 'vendor',
+        role: 'publisher',
         company: 'Apex Publishers Intern.',
       },
     ],
@@ -368,7 +368,7 @@ describe('authentication dialogs', () => {
       );
 
       fireEvent.change(screen.getByLabelText('Work email'), {
-        target: { value: 'advertiser@vantagepoint.com' },
+        target: { value: 'buyer@vantagepoint.com' },
       });
       fireEvent.change(screen.getByLabelText('Password'), {
         target: { value: 'password' },
@@ -400,7 +400,7 @@ describe('authentication dialogs', () => {
         screen.getByRole('button', { name: 'Explore demo accounts' }),
       );
       fireEvent.click(
-        screen.getByRole('button', { name: 'Advertiser demo' }),
+        screen.getByRole('button', { name: 'Buyer demo' }),
       );
       fireEvent.keyDown(document, { key: 'Escape' });
       act(() => vi.advanceTimersByTime(500));
@@ -429,7 +429,7 @@ describe('authentication dialogs', () => {
         screen.getByRole('button', { name: 'Explore demo accounts' }),
       );
       fireEvent.click(
-        screen.getByRole('button', { name: 'Advertiser demo' }),
+        screen.getByRole('button', { name: 'Buyer demo' }),
       );
       fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
       act(() => vi.advanceTimersByTime(500));
@@ -459,11 +459,11 @@ describe('authentication dialogs', () => {
     ).toBeInTheDocument();
   });
 
-  it('selects Advertiser as the initial account type', () => {
+  it('selects Buyer as the initial account type', () => {
     renderRegister();
 
     expect(
-      screen.getByRole('radio', { name: 'Advertiser' }),
+      screen.getByRole('radio', { name: 'Buyer' }),
     ).toBeChecked();
   });
 
@@ -475,11 +475,11 @@ describe('authentication dialogs', () => {
     ).toBeInTheDocument();
   });
 
-  it('selects Publisher and clears Advertiser when requested', async () => {
+  it('selects Publisher and clears Buyer when requested', async () => {
     const user = userEvent.setup();
     renderRegister();
 
-    const advertiser = screen.getByRole('radio', { name: 'Advertiser' });
+    const advertiser = screen.getByRole('radio', { name: 'Buyer' });
     const publisher = screen.getByRole('radio', { name: 'Publisher' });
 
     await user.click(publisher);
@@ -574,7 +574,7 @@ describe('authentication dialogs', () => {
           name: 'Existing Member',
           email: 'ama@landmark.example',
           password: 'existing-password',
-          role: 'advertiser',
+          role: 'buyer',
         },
       ]),
     );
@@ -661,7 +661,7 @@ describe('authentication dialogs', () => {
         id: expect.stringMatching(/^usr_/),
         name: 'Ama Mensah',
         email: 'ama@landmark.example',
-        role: 'vendor',
+        role: 'publisher',
         company: 'Accra Landmark Media',
       });
       expect(JSON.parse(localStorage.getItem('vantage_users')!)).toEqual([
@@ -669,7 +669,7 @@ describe('authentication dialogs', () => {
           name: 'Ama Mensah',
           email: 'ama@landmark.example',
           password: 'premium-exchange',
-          role: 'vendor',
+          role: 'publisher',
           company: 'Accra Landmark Media',
         }),
       ]);
@@ -688,7 +688,7 @@ describe('authentication dialogs', () => {
       const organization = screen.getByLabelText('Organization');
       const email = screen.getByLabelText('Work email');
       const password = screen.getByLabelText('Password');
-      const advertiser = screen.getByRole('radio', { name: 'Advertiser' });
+      const advertiser = screen.getByRole('radio', { name: 'Buyer' });
       const publisher = screen.getByRole('radio', { name: 'Publisher' });
       const consent = screen.getByRole('checkbox', {
         name: 'I agree to the terms of service and privacy policy',

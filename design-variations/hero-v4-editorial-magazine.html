@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cinematic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V4 — Editorial Magazine Spread</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/urbanist@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5/index.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --vp-primary: #a8ff60;
+  --vp-primary-ink: #071006;
+  --vp-primary-glow: rgba(168, 255, 96, 0.14);
+  --vp-bg: #060806;
+  --vp-bg-alt: #0b100b;
+  --vp-bg-dark: #050705;
+  --vp-ink: #f5f0e7;
+  --vp-muted: rgba(245, 240, 231, 0.68);
+  --vp-dim: rgba(245, 240, 231, 0.46);
+  --vp-line: rgba(245, 240, 231, 0.15);
+  --vp-line2: rgba(245, 240, 231, 0.32);
+  --vp-panel: rgba(245, 240, 231, 0.04);
+  --vp-panel-hover: rgba(245, 240, 231, 0.06);
+  --vp-ease: cubic-bezier(0.2, 0, 0, 1);
+  --font-heading: 'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+}
+
+html { background: var(--vp-bg-dark); }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--vp-ink);
+  min-height: 100vh;
+}
+
+h1,h2,h3,h4,h5,h6 { font-family: var(--font-heading); }
+
+.noise {
+  position: fixed; inset: 0; pointer-events: none; z-index: 90;
+  opacity: .05; mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+.hero {
+  min-height: 100svh; display: flex; flex-direction: column;
+  position: relative; z-index: 1;
+}
+
+/* ─── Hero image strip ─── */
+.hero-strip {
+  position: relative; height: 60svh; overflow: hidden;
+}
+
+.hero-strip-bg {
+  position: absolute; inset: 0;
+  background: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=1400&q=80') center/cover no-repeat;
+  animation: stripDrift 30s ease-in-out infinite alternate;
+}
+
+@keyframes stripDrift {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05) translateY(-1%); }
+}
+
+.strip-fade-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 80%, rgba(6,8,6,0.6) 0%, var(--vp-bg-dark) 100%);
+  pointer-events: none;
+}
+
+.strip-fade-top {
+  position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, var(--vp-bg-dark) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.strip-overlay-text {
+  position: absolute; bottom: 32px; right: 32px;
+  font-size: clamp(80px, 12vw, 200px); font-weight: 900;
+  font-family: var(--font-heading); line-height: .8;
+  color: var(--vp-ink); opacity: .06;
+  letter-spacing: -.04em; pointer-events: none;
+}
+
+.strip-live-dot {
+  position: absolute; top: 28px; right: 28px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--vp-ink);
+  background: rgba(6, 8, 6, 0.55); padding: 8px 14px;
+  border-radius: 8px; backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.strip-live-dot i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vp-primary);
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(168, 255, 96, 0.5); }
+  50% { opacity: .5; box-shadow: 0 0 0 5px rgba(168, 255, 96, 0); }
+}
+
+/* ─── Copy section ─── */
+.hero-body {
+  flex: 1; padding: 64px 24px 48px;
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--vp-bg-dark);
+  position: relative;
+}
+
+.hero-body-inner { max-width: 700px; text-align: center; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--vp-primary); font-family: var(--font-sans);
+  font-weight: 800; font-size: 12px; line-height: 1;
+  text-transform: uppercase; letter-spacing: .14em; margin-bottom: 22px;
+}
+
+.eyebrow::before, .eyebrow::after {
+  content: ''; width: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--vp-primary));
+}
+.eyebrow::after { background: linear-gradient(90deg, var(--vp-primary), transparent); }
+
+.hero-title {
+  font-size: clamp(40px, 5.5vw, 68px); font-weight: 900;
+  line-height: 1.02; letter-spacing: -.05em;
+  text-wrap: balance; margin-bottom: 24px;
+}
+
+.hero-title em { font-style: normal; color: var(--vp-primary); }
+
+.hero-lead {
+  font-size: clamp(16px, 1.35vw, 20px); color: var(--vp-muted);
+  line-height: 1.6; max-width: 520px; margin: 0 auto 40px;
+  text-wrap: pretty;
+}
+
+.btn-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-sans); font-weight: 800; font-size: 15px;
+  padding: 16px 34px; border-radius: 12px; cursor: pointer;
+  text-decoration: none; border: none; outline: none;
+  transition: transform .2s var(--vp-ease), box-shadow .2s var(--vp-ease);
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: var(--vp-primary); color: var(--vp-primary-ink);
+}
+.btn-primary:hover { box-shadow: 0 0 36px rgba(168, 255, 96, 0.40); }
+
+.btn-ghost {
+  background: transparent; color: var(--vp-ink);
+  box-shadow: inset 0 0 0 1px var(--vp-line2);
+}
+.btn-ghost:hover { box-shadow: inset 0 0 0 1px var(--vp-line2), 0 0 0 5px var(--vp-panel); }
+
+/* Metrics */
+.metrics-row {
+  display: flex; gap: 48px; justify-content: center;
+  padding: 32px 0 0;
+  border-top: 1px solid var(--vp-line);
+}
+
+.metric-item {
+  text-align: center; font-variant-numeric: tabular-nums;
+}
+
+.metric-value {
+  font-size: 26px; font-weight: 900; font-family: var(--font-heading);
+  font-variant-numeric: tabular-nums;
+}
+.metric-item:first-child .metric-value { color: var(--vp-primary); }
+
+.metric-label {
+  font-size: 11px; color: var(--vp-dim); text-transform: uppercase;
+  letter-spacing: .06em; margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .hero-strip { height: 40svh; }
+  .metrics-row { gap: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="noise" aria-hidden="true"></div>
+
+<section class="hero">
+  <div class="hero-strip">
+    <div class="hero-strip-bg" aria-hidden="true"></div>
+    <div class="strip-fade-bottom" aria-hidden="true"></div>
+    <div class="strip-fade-top" aria-hidden="true"></div>
+    <span class="strip-overlay-text" aria-hidden="true">OUTDOOR</span>
+    <span class="strip-live-dot"><i></i>Live inventory</span>
+  </div>
+
+  <div class="hero-body">
+    <div class="hero-body-inner">
+      <p class="eyebrow">Africa's out-of-home marketplace</p>
+      <h1 class="hero-title">
+        Find and book billboards across Africa in <em>under 5&nbsp;minutes.</em>
+      </h1>
+      <p class="hero-lead">
+        The first unified marketplace for outdoor advertising in Sub-Saharan Africa.
+        One search, one price, one booking.
+      </p>
+      <div class="btn-row">
+        <a href="#" class="btn btn-primary">Start booking <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a href="#" class="btn btn-ghost">Create account</a>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric-value">4.5min</div>
+          <div class="metric-label">Avg. time to book</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">5</div>
+          <div class="metric-label">Cities live today</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">42+</div>
+          <div class="metric-label">Publishers consolidated</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

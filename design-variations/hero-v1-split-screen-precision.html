@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cinematic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 — Split Screen Precision</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/urbanist@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5/index.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --vp-primary: #a8ff60;
+  --vp-primary-hover: #c0ff80;
+  --vp-primary-ink: #071006;
+  --vp-primary-glow: rgba(168, 255, 96, 0.14);
+  --vp-bg: #060806;
+  --vp-bg-alt: #0b100b;
+  --vp-bg-dark: #050705;
+  --vp-bg-glass: rgba(6, 8, 6, 0.88);
+  --vp-ink: #f5f0e7;
+  --vp-muted: rgba(245, 240, 231, 0.68);
+  --vp-dim: rgba(245, 240, 231, 0.46);
+  --vp-line: rgba(245, 240, 231, 0.15);
+  --vp-line2: rgba(245, 240, 231, 0.32);
+  --vp-panel: rgba(245, 240, 231, 0.04);
+  --vp-panel-hover: rgba(245, 240, 231, 0.06);
+  --vp-surface: rgba(245, 240, 231, 0.03);
+  --vp-ease: cubic-bezier(0.2, 0, 0, 1);
+  --font-heading: 'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+}
+
+html { background: var(--vp-bg); scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--vp-ink);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 72% 20%, var(--vp-primary-glow), transparent 40rem),
+    linear-gradient(180deg, var(--vp-bg-dark), var(--vp-bg-alt), var(--vp-bg));
+}
+
+h1,h2,h3,h4,h5,h6 { font-family: var(--font-heading); }
+
+.noise {
+  position: fixed; inset: 0; pointer-events: none; z-index: 90;
+  opacity: .06; mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+.grid-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .24;
+  background:
+    linear-gradient(var(--vp-panel) 1px, transparent 1px),
+    linear-gradient(90deg, var(--vp-line) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 80%);
+}
+
+.hero {
+  min-height: 100svh; display: flex; align-items: center; justify-content: center;
+  padding: 100px 24px 60px; position: relative; z-index: 1;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 64px; align-items: center;
+  max-width: 1240px; width: 100%; margin: 0 auto;
+}
+
+.hero-copy { max-width: 560px; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--vp-primary); font-family: var(--font-sans);
+  font-weight: 800; font-size: 12px; line-height: 1;
+  text-transform: uppercase; letter-spacing: .14em; margin-bottom: 20px;
+}
+
+.eyebrow::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--vp-primary);
+  box-shadow: 0 0 10px var(--vp-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.5); }
+}
+
+.hero-title {
+  font-size: clamp(42px, 5.5vw, 72px); font-weight: 800;
+  line-height: 1.05; letter-spacing: -.052em;
+  text-wrap: balance; margin-bottom: 22px;
+}
+
+.hero-lead {
+  font-size: clamp(16px, 1.35vw, 20px); color: var(--vp-muted);
+  line-height: 1.5; max-width: 460px; text-wrap: pretty; margin-bottom: 36px;
+}
+
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-sans); font-weight: 800; font-size: 14px;
+  padding: 14px 28px; border-radius: 10px; cursor: pointer;
+  transition: transform .2s var(--vp-ease), box-shadow .2s var(--vp-ease);
+  border: none; outline: none; text-decoration: none;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: var(--vp-primary); color: var(--vp-primary-ink);
+}
+.btn-primary:hover { box-shadow: 0 0 28px rgba(168, 255, 96, 0.35); }
+
+.btn-ghost {
+  background: transparent; color: var(--vp-ink);
+  box-shadow: inset 0 0 0 1px var(--vp-line2);
+}
+.btn-ghost:hover {
+  box-shadow: inset 0 0 0 1px var(--vp-line2), 0 0 0 4px var(--vp-panel);
+}
+
+.metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--vp-line);
+}
+
+.metric {
+  padding: 14px 16px; text-align: center;
+  font-variant-numeric: tabular-nums;
+  border-right: 1px solid var(--vp-line);
+}
+.metric:last-child { border-right: none; }
+
+.metric strong {
+  display: block; font-size: 20px; font-weight: 800;
+  font-family: var(--font-heading); font-variant-numeric: tabular-nums;
+}
+.metric span {
+  display: block; font-size: .75rem; color: var(--vp-dim);
+  margin-top: 2px;
+}
+
+.metric-accent {
+  background: var(--vp-primary-glow); color: var(--vp-primary);
+}
+.metric-accent strong { color: var(--vp-primary); }
+
+/* ─── Visual card ─── */
+.hero-visual {
+  position: relative; width: 100%;
+}
+
+.dossier {
+  position: relative; overflow: hidden;
+  border-radius: 18px;
+  aspect-ratio: 4 / 3; max-height: 520px;
+  box-shadow:
+    0 0 0 1px var(--vp-line),
+    0 24px 64px rgba(0, 0, 0, 0.4);
+  transition: transform .3s var(--vp-ease);
+  cursor: pointer;
+}
+.dossier:hover { transform: translateY(-2px); }
+
+.dossier-bg {
+  position: absolute; inset: 0;
+  background:
+    url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80') center/cover;
+  animation: kenBurns 20s ease-in-out infinite alternate;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.dossier-overlay {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6,8,6,0.1) 0%, rgba(6,8,6,0) 40%, rgba(6,8,6,0.7) 100%);
+}
+
+.live-dot {
+  position: absolute; top: 20px; right: 20px;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--vp-ink);
+  background: rgba(6, 8, 6, 0.64); padding: 7px 12px;
+  border-radius: 8px; backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.live-dot i {
+  display: block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vp-primary); animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(168, 255, 96, 0.6); }
+  50% { opacity: .5; box-shadow: 0 0 0 6px rgba(168, 255, 96, 0); }
+}
+
+.dossier-index {
+  position: absolute; bottom: -18px; right: -14px;
+  font-family: var(--font-heading); font-size: 168px; font-weight: 900;
+  color: var(--vp-ink); opacity: .035; line-height: 1;
+  pointer-events: none;
+}
+
+.inv {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 24px; backdrop-filter: blur(22px) saturate(140%);
+  background: var(--vp-bg-glass);
+  border-top: 1px solid var(--vp-line);
+}
+
+.inv-row { display: flex; justify-content: space-between; align-items: center; }
+.inv-loc { font-size: 13px; color: var(--vp-muted); display: flex; align-items: center; gap: 6px; }
+.inv-avail {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  color: var(--vp-primary); letter-spacing: .04em;
+}
+
+.inv-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 0; }
+.inv-meta b { display: block; font-size: 15px; font-weight: 700; }
+.inv-meta small { font-size: 10px; color: var(--vp-dim); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ─── Marquee ─── */
+.marquee {
+  position: absolute; bottom: 24px; left: 0; right: 0;
+  overflow: hidden; pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+.marquee-track {
+  display: flex; gap: 40px; width: max-content;
+  animation: scroll 32s linear infinite;
+}
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+.marquee-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+  color: var(--vp-dim); transition: color .3s var(--vp-ease);
+}
+.marquee-item:hover { color: var(--vp-primary); }
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 860px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { max-width: 540px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+<div class="noise" aria-hidden="true"></div>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Africa's out-of-home marketplace</p>
+      <h1 class="hero-title">Find and book billboards across Africa in under&nbsp;5&nbsp;minutes.</h1>
+      <p class="hero-lead">
+        The first unified marketplace for outdoor advertising in Sub-Saharan Africa.
+        One search, one price, one booking.
+      </p>
+      <div class="btn-row">
+        <a href="#" class="btn btn-primary">Start booking <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M7 7h10v10"/></svg></a>
+        <a href="#" class="btn btn-ghost">Create account</a>
+      </div>
+      <div class="metrics">
+        <a href="#" class="metric metric-accent" style="text-decoration:none;color:inherit;">
+          <strong>4.5min</strong><span>Avg. time to book</span>
+        </a>
+        <div class="metric"><strong>5</strong><span>Cities live today</span></div>
+        <div class="metric"><strong>42+</strong><span>Publishers consolidated</span></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <article class="dossier">
+        <div class="dossier-bg"></div>
+        <div class="dossier-overlay"></div>
+        <span class="live-dot"><i></i>Available now</span>
+        <div class="inv">
+          <div class="inv-row">
+            <span class="inv-loc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg> Independence Ave &middot; Accra</span>
+            <span class="inv-avail">Available</span>
+          </div>
+          <div class="inv-meta">
+            <div><b>Digital LED</b><small>18m &times; 6m</small></div>
+            <div><b>2.4M</b><small>monthly reach</small></div>
+            <div><b>$450</b><small>per day</small></div>
+          </div>
+        </div>
+        <span class="dossier-index" aria-hidden="true">01</span>
+      </article>
+    </div>
+  </div>
+
+  <div class="marquee" aria-label="Cities served">
+    <div class="marquee-track">
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Accra</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Lagos</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Nairobi</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Johannesburg</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Cape Town</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Kumasi</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Abuja</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Mombasa</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Accra</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Lagos</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Nairobi</span>
+      <span class="marquee-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8z"/></svg>Johannesburg</span>
+    </div>
+  </div>
+</section>
+</body>
+</html>

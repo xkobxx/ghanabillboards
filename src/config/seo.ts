@@ -30,13 +30,13 @@ export const SEO_MAP: Record<string, SEORoute> = {
     description:
       'Browse live billboard inventory across Africa. Search by city, format, and proximity. Click any marker to book billboards in minutes.',
   },
-  '/advertiser': {
-    title: 'Advertiser Dashboard — Vantage Point',
+  '/buyer': {
+    title: 'Buyer Dashboard — Vantage Point',
     description:
       'Browse billboard inventory, compare locations, submit bookings, and track campaigns across African markets from one workspace.',
   },
-  '/vendor': {
-    title: 'Vendor Dashboard — Vantage Point',
+  '/publisher': {
+    title: 'Publisher Dashboard — Vantage Point',
     description:
       'Manage billboard inventory, approve booking requests, set rates, and track revenue. The media owner control panel for African OOH supply.',
   },

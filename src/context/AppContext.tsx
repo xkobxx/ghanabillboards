@@ -2,6 +2,9 @@ import React from 'react';
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { Billboard, Booking, User, AppNotification } from '../types';
 import { BILLBOARDS_DATA } from '../data';
+import { readCachedBuyerSettings } from '../hooks/useBuyerSettings';
+import { notificationsApi } from '../lib/notificationsApi';
+import { sessionStore } from '../lib/apiClient';
 
 interface AppContextValue {
   allBillboards: Billboard[];
@@ -18,7 +21,7 @@ interface AppContextValue {
   showScrollTop: boolean;
   setShowScrollTop: (v: boolean) => void;
   registerBooking: (booking: Booking) => void;
-  updateBookingStatus: (id: string, newStatus: 'Pending Approved' | 'Live' | 'Completed' | 'Rejected') => void;
+  updateBookingStatus: (id: string, newStatus: Booking['status']) => void;
   updateBillboardStatus: (id: string, newStatus: Billboard['status']) => void;
   createBillboard: (billboard: Billboard) => void;
   deleteBillboard: (id: string) => void;
@@ -127,6 +130,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch { return []; }
   });
 
+  useEffect(() => {
+    if (!currentUser || !sessionStore.getToken()) return;
+    notificationsApi.list().then((items) => {
+      setNotifications(items.map((item) => ({
+        id: item.id,
+        channel: 'in-app',
+        title: item.title,
+        body: item.body,
+        timestamp: new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        read: Boolean(item.readAt),
+      })));
+    }).catch(() => undefined);
+  }, [currentUser]);
+
   // Keep a ref so event callbacks can read current bookings without stale closure
   const myBookingsRef = useRef(myBookings);
   useEffect(() => { myBookingsRef.current = myBookings; }, [myBookings]);
@@ -143,11 +160,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markAllNotificationsRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (sessionStore.getToken()) notificationsApi.markAllRead().catch(() => undefined);
   }, []);
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
     localStorage.removeItem('vantage_notifications');
+    if (sessionStore.getToken()) notificationsApi.clear().catch(() => undefined);
   }, []);
 
   // Persist bookings
@@ -182,15 +201,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const registerBooking = useCallback((booking: Booking) => {
-    setMyBookings((prev) => [booking, ...prev]);
+    const settings = currentUser ? readCachedBuyerSettings(currentUser.id) : null;
+    const status: Booking['status'] = settings?.creativeReviewRequired
+      ? 'Awaiting Creative Review'
+      : settings?.approvalWorkflow === 'MANAGER'
+        ? 'Awaiting Manager Approval'
+        : 'Pending Approved';
+    const acceptedBooking: Booking = {
+      ...booking,
+      status,
+      invoiceCode: `INV-${booking.id.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(-10)}`,
+    };
+    setMyBookings((prev) => [acceptedBooking, ...prev]);
     setAllBillboards((prev) => prev.map((b) => b.id === booking.billboardId ? { ...b, status: 'Fully Booked' as const } : b));
-    addNotification({ channel: 'in-app', title: 'Booking submitted', body: `${booking.campaignName} — pending vendor approval` });
-    addNotification({ channel: 'email', title: 'Confirmation email queued', body: `Receipt dispatched to advertiser` });
-    addNotification({ channel: 'sms', title: 'SMS alert queued', body: 'Vendor notified via SMS gateway' });
-  }, [addNotification]);
+    if (settings?.bookingStatusAlerts !== false) {
+      addNotification({ channel: 'in-app', title: 'Booking submitted', body: `${booking.campaignName} — ${status.toLowerCase()}` });
+    }
+    if (settings?.invoiceAlerts !== false) {
+      addNotification({ channel: 'email', title: 'Pro-forma invoice issued', body: `${acceptedBooking.invoiceCode} · ${booking.campaignName}` });
+    }
+  }, [addNotification, currentUser]);
 
-  const updateBookingStatus = useCallback((id: string, newStatus: 'Pending Approved' | 'Live' | 'Completed' | 'Rejected') => {
+  const updateBookingStatus = useCallback((id: string, newStatus: Booking['status']) => {
     const booking = myBookingsRef.current.find(b => b.id === id);
+    const settings = currentUser ? readCachedBuyerSettings(currentUser.id) : null;
     setMyBookings((prev) => {
       if (newStatus === 'Rejected') {
         const targetBkg = prev.find(b => b.id === id);
@@ -207,19 +241,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return b;
       });
     });
-    if (booking) {
+    if (booking && settings?.bookingStatusAlerts !== false) {
       if (newStatus === 'Live') {
         addNotification({ channel: 'in-app', title: 'Booking approved', body: `${booking.campaignName} is now live` });
-        addNotification({ channel: 'email', title: 'Approval email queued', body: `Advertiser notified — ${booking.campaignName}` });
+        addNotification({ channel: 'email', title: 'Approval email queued', body: `Buyer notified — ${booking.campaignName}` });
       } else if (newStatus === 'Completed') {
         addNotification({ channel: 'in-app', title: 'Campaign completed', body: booking.campaignName });
       } else if (newStatus === 'Rejected') {
         addNotification({ channel: 'in-app', title: 'Booking rejected', body: `${booking.campaignName} was rejected` });
-        addNotification({ channel: 'email', title: 'Rejection email queued', body: `Advertiser notified — ${booking.campaignName}` });
+        addNotification({ channel: 'email', title: 'Rejection email queued', body: `Buyer notified — ${booking.campaignName}` });
         addNotification({ channel: 'sms', title: 'SMS rejection queued', body: 'Rejection SMS queued for delivery' });
+      } else if (newStatus === 'Pending Approved') {
+        addNotification({ channel: 'in-app', title: 'Internal approval complete', body: `${booking.campaignName} was sent to the publisher` });
       }
     }
-  }, [addNotification]);
+    if (booking && newStatus === 'Rejected' && settings?.availabilityAlerts !== false) {
+      addNotification({ channel: 'in-app', title: 'Inventory available again', body: `${booking.campaignName} released its reserved billboard` });
+    }
+  }, [addNotification, currentUser]);
 
   const updateBillboardStatus = useCallback((id: string, newStatus: Billboard['status']) => {
     setAllBillboards((prev) => prev.map((b) => b.id === id ? { ...b, status: newStatus } : b));
@@ -238,6 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     setCurrentUser(null);
     localStorage.removeItem('vantage_current_user');
+    sessionStore.clear();
   }, []);
 
   // ponytail: global lock for all password ops, per-account locks if throughput matters

@@ -51,7 +51,7 @@ export default function AvatarUpload({ currentAvatar, userName, onSave, size = 9
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
         style={{
-          width: size, height: size, borderRadius: '50%',
+          width: size, height: size, borderRadius: 0,
           background: dragOver ? 'rgba(168,255,96,.12)' : 'rgba(255,255,255,.06)',
           border: `2px dashed ${dragOver ? '#a8ff60' : imageSrc ? 'transparent' : 'rgba(245,240,231,.24)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',

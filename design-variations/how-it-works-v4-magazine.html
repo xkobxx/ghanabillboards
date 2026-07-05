@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V4 — Editorial Magazine (How It Works)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/urbanist@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5/index.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --vp-primary: #0D9488;
+  --vp-primary-hover: #08786B;
+  --vp-primary-ink: #FFFFFF;
+  --vp-primary-line: rgba(13,148,136,0.35);
+  --vp-primary-bg: rgba(13,148,136,0.06);
+  --vp-bg: #FFFFFF;
+  --vp-bg-alt: #FAFBFC;
+  --vp-bg-dark: #F0F2F5;
+  --vp-ink: #0F0F0F;
+  --vp-muted: #555555;
+  --vp-dim: #999999;
+  --vp-line: #E8E8E8;
+  --vp-line2: #D0D0D0;
+  --vp-panel: #FAFBFC;
+  --vp-panel-hover: #F2F4F6;
+  --vp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --font-heading: 'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+}
+
+html { background: var(--vp-bg); }
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--vp-ink);
+  min-height: 100vh;
+  padding: 100px 32px 140px;
+}
+
+/* Subtle paper texture */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99; opacity: .02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 260 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+.container { max-width: 1040px; margin: 0 auto; }
+
+/* ── SECTION HEAD ── */
+.section-head { margin-bottom: 96px; }
+
+.eyebrow {
+  font-family: var(--font-sans); font-weight: 800; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .2em; color: var(--vp-primary);
+  margin-bottom: 24px; position: relative; padding-left: 44px;
+}
+.eyebrow::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 32px; height: 1px; background: var(--vp-primary);
+  transform: translateY(-50%);
+}
+
+.section-head h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 4.5vw, 56px); font-weight: 700;
+  letter-spacing: -.05em; line-height: 1.02; max-width: 680px;
+  margin-bottom: 20px;
+}
+.section-head .lead {
+  font-size: clamp(16px, 1.3vw, 19px); color: var(--vp-muted);
+  line-height: 1.7; max-width: 520px; font-weight: 400;
+}
+
+/* ── MAGAZINE SPREAD ── */
+.spread { display: flex; flex-direction: column; gap: 0; }
+
+.story {
+  display: grid;
+  grid-template-columns: 0.45fr 1fr;
+  gap: 0;
+  position: relative;
+  transition: transform .5s var(--vp-ease);
+}
+.story:nth-child(even) {
+  grid-template-columns: 1fr 0.45fr;
+}
+.story:nth-child(even) .story-num { order: 2; }
+.story:nth-child(even) .story-content { order: 1; padding-right: 64px; padding-left: 0; }
+
+.story:hover { transform: translateX(4px); }
+.story:nth-child(even):hover { transform: translateX(-4px); }
+
+/* Number column */
+.story-num {
+  position: relative;
+  display: flex; align-items: flex-start; justify-content: flex-end;
+  padding: 40px 48px 40px 0;
+  border-right: 1px solid var(--vp-line);
+}
+.story:nth-child(even) .story-num {
+  border-right: none; border-left: 1px solid var(--vp-line);
+  justify-content: flex-start; padding: 40px 0 40px 48px;
+}
+
+.story-num-number {
+  font-family: var(--font-heading); font-weight: 800;
+  font-size: clamp(72px, 8vw, 120px);
+  line-height: .75; color: var(--vp-bg-alt);
+  -webkit-text-stroke: 1px var(--vp-line2);
+  transition: color .4s var(--vp-ease), -webkit-text-stroke .4s var(--vp-ease);
+  user-select: none;
+}
+.story:hover .story-num-number {
+  color: var(--vp-primary-bg);
+  -webkit-text-stroke: 1px var(--vp-primary-line);
+}
+
+/* Number label */
+.story-num-label {
+  position: absolute; bottom: 48px; right: 48px;
+  font-family: var(--font-sans); font-weight: 700; font-size: 11px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--vp-dim);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  transition: color .3s var(--vp-ease);
+}
+.story:nth-child(even) .story-num-label { right: auto; left: 48px; }
+.story:hover .story-num-label { color: var(--vp-primary); }
+
+/* Content column */
+.story-content {
+  padding: 48px 0 48px 64px;
+  border-bottom: 1px solid var(--vp-line);
+  position: relative;
+}
+
+/* Image strip */
+.story-image {
+  width: 100%; height: 160px; overflow: hidden; margin-bottom: 28px;
+  position: relative;
+}
+.story-image-inner {
+  width: 100%; height: 100%;
+  background-size: cover; background-position: center;
+  transition: transform .6s var(--vp-ease);
+}
+.story:hover .story-image-inner { transform: scale(1.04); }
+
+/* Teal accent rule */
+.story-image::after {
+  content: ""; position: absolute; bottom: 0; left: 0;
+  width: 48px; height: 3px; background: var(--vp-primary);
+  transition: width .5s var(--vp-ease);
+  z-index: 1;
+}
+.story:hover .story-image::after { width: 100%; }
+
+.story-content h3 {
+  font-family: var(--font-heading);
+  font-size: clamp(22px, 2.2vw, 30px); font-weight: 700;
+  letter-spacing: -.04em; margin-bottom: 12px;
+}
+
+.story-content p {
+  font-size: 14px; line-height: 1.75; color: var(--vp-muted);
+  max-width: 480px; margin-bottom: 16px;
+}
+
+.story-role {
+  display: inline-flex;
+  font-family: var(--font-sans); font-weight: 700; font-size: 10px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--vp-primary);
+  border-bottom: 1px solid var(--vp-primary-line);
+  padding-bottom: 2px;
+  transition: border-color .3s var(--vp-ease);
+}
+.story:hover .story-role { border-color: var(--vp-primary); }
+
+/* Horizontal rule between stories */
+.story + .story { margin-top: 0; }
+
+/* ── Magazine folio mark ── */
+.folio {
+  position: fixed; bottom: 24px; right: 32px;
+  font-family: var(--font-sans); font-weight: 600; font-size: 10px;
+  color: var(--vp-dim); letter-spacing: .1em;
+  z-index: 100;
+}
+.folio::before { content: "● "; color: var(--vp-primary); }
+
+@media (max-width: 800px) {
+  .story, .story:nth-child(even) {
+    grid-template-columns: 1fr;
+  }
+  .story-num {
+    border-right: none; border-bottom: 1px solid var(--vp-line);
+    justify-content: flex-start; padding: 20px 0;
+  }
+  .story:nth-child(even) .story-num {
+    order: -1; border-left: none; border-bottom: 1px solid var(--vp-line);
+    padding: 20px 0;
+  }
+  .story-num-label { display: none; }
+  .story-num-number { font-size: clamp(48px, 12vw, 80px); }
+  .story-content, .story:nth-child(even) .story-content {
+    padding: 32px 0;
+  }
+  .story:hover { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="section-head">
+    <p class="eyebrow">HOW IT WORKS</p>
+    <h2>From search to live campaign in six steps.</h2>
+    <p class="lead">Deep workflows sit behind each role. Here's the full sequence.</p>
+  </div>
+
+  <div class="spread">
+
+    <!-- 01 — Search -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">01</span>
+        <span class="story-num-label">Step one</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Search</h3>
+        <p>Filter by city, format, traffic volume, and price range. Every billboard in the network, instantly searchable — no more emailing operators one by one.</p>
+        <span class="story-role">Buyer</span>
+      </div>
+    </article>
+
+    <!-- 02 — Compare -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">02</span>
+        <span class="story-num-label">Step two</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Compare</h3>
+        <p>View specs, daily rates, traffic data, and photos side by side. Make informed decisions with real data — not PDF attachments.</p>
+        <span class="story-role">Buyer</span>
+      </div>
+    </article>
+
+    <!-- 03 — Price -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">03</span>
+        <span class="story-num-label">Step three</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Price</h3>
+        <p>Daily rate × flight duration = total. No fees added at checkout. Transparent pricing means you see exactly what you'll pay before you commit.</p>
+        <span class="story-role">Buyer</span>
+      </div>
+    </article>
+
+    <!-- 04 — Schedule -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">04</span>
+        <span class="story-num-label">Step four</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1534190239940-9ba8944ea631?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Schedule</h3>
+        <p>Lock calendar dates. A pending booking record is created instantly — no waiting, no back-and-forth, no uncertainty.</p>
+        <span class="story-role">Buyer</span>
+      </div>
+    </article>
+
+    <!-- 05 — Approve -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">05</span>
+        <span class="story-num-label">Step five</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1572947650440-e8a97ef053b2?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Approve</h3>
+        <p>Vendor confirms availability and accepts the booking. The system handles the logistics — you focus on your campaign.</p>
+        <span class="story-role">Vendor</span>
+      </div>
+    </article>
+
+    <!-- 06 — Report -->
+    <article class="story">
+      <div class="story-num">
+        <span class="story-num-number">06</span>
+        <span class="story-num-label">Step six</span>
+      </div>
+      <div class="story-content">
+        <div class="story-image">
+          <div class="story-image-inner" style="background-image:url('https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=800&q=80')"></div>
+        </div>
+        <h3>Report</h3>
+        <p>Campaign goes live. Telemetry tracks delivery status. Both buyer and vendor see real-time confirmation that the campaign is running as booked.</p>
+        <span class="story-role">Both</span>
+      </div>
+    </article>
+
+  </div>
+</div>
+
+<div class="folio">Vantage Point · Platform Overview</div>
+</body>
+</html>

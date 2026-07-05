@@ -18,13 +18,13 @@ const FLOW_STEPS = [
   { num: '02', Icon: SlidersHorizontal, title: 'Compare',  desc: 'View specs, daily rates, traffic data, and photos side by side.',                role: 'Buyer'  },
   { num: '03', Icon: Tag,               title: 'Price',    desc: 'Daily rate × flight duration = total. No fees added at checkout.',               role: 'Buyer'  },
   { num: '04', Icon: CalendarCheck,     title: 'Schedule', desc: 'Lock calendar dates. A pending booking record is created instantly.',            role: 'Buyer'  },
-  { num: '05', Icon: Activity,          title: 'Approve',  desc: 'Vendor confirms availability and accepts the booking.',                          role: 'Vendor' },
+  { num: '05', Icon: Activity,          title: 'Approve',  desc: 'Publisher confirms availability and accepts the booking.',                          role: 'Publisher' },
   { num: '06', Icon: BarChart2,         title: 'Report',   desc: 'Campaign goes live. Telemetry tracks delivery status.',                         role: 'Both'   },
 ];
 
 const TRUST_CARDS = [
   { Icon: Tag,          title: 'Transparent pricing',    desc: 'Daily rate × flight duration = total. Nothing buried in email attachments.' },
-  { Icon: Shield,       title: 'Vendor verification',   desc: 'Every operator is vetted before their inventory goes live on the platform.' },
+  { Icon: Shield,       title: 'Publisher verification',   desc: 'Every operator is vetted before their inventory goes live on the platform.' },
   { Icon: CalendarCheck, title: 'Real-time availability', desc: 'Calendar locks on your dates the moment you schedule. No double-booking.' },
   { Icon: Lock,         title: 'Escrow-ready payments',  desc: 'Paystack integration holds funds until campaign confirmation. No pay-and-pray.' },
 ];
@@ -39,7 +39,7 @@ const STACK = ['React', 'Vite', 'TypeScript', 'Paystack', 'Prisma', 'Nginx'];
 
 const SECURITY = [
   'Rate-limited API gateway — no credential exposure to client',
-  'Paystack escrow — funds held until vendor confirmation',
+  'Paystack escrow — funds held until publisher confirmation',
   'Client-side sandbox mirrors Auth, Booking & Payments modules',
 ];
 
@@ -52,15 +52,32 @@ export default function BlueprintPage() {
 
     const ctx = gsap.context(() => {
       gsap.set('.vp-blueprint .reveal, .vp-blueprint .fade-up', { opacity: 0, y: 36 });
+
+      // Page load entrance — blueprint hero section
+      const firstStage = containerRef.current?.querySelector('.vp-stage');
+      if (firstStage) {
+        gsap.set(firstStage.querySelectorAll('.reveal'), { opacity: 0, y: 40 });
+        if (!reduce) {
+          gsap.timeline({ defaults: { ease: 'power3.out' } })
+            .to(firstStage.querySelector('.vp-eyebrow'), { opacity: 1, y: 0, duration: 0.7 }, 0.35)
+            .to(firstStage.querySelector('h1'), { opacity: 1, y: 0, duration: 0.9 }, 0.55)
+            .to(firstStage.querySelector('.vp-lead'), { opacity: 1, y: 0, duration: 0.7 }, 1.15)
+            .to(firstStage.querySelector('.vp-pill-row'), { opacity: 1, y: 0, duration: 0.6, stagger: 0.06 }, 1.45);
+        } else {
+          gsap.set(firstStage.querySelectorAll('.reveal'), { opacity: 1, y: 0 });
+        }
+      }
+
       containerRef.current?.querySelectorAll('.vp-stage').forEach((section) => {
+        if (section === firstStage) return; // entrance timeline handles hero
         const items = section.querySelectorAll('.reveal, .fade-up');
         if (!items.length) return;
         gsap.fromTo(
           items,
           { opacity: 0, y: 36 },
           {
-            opacity: 1, y: 0, duration: 1.05, ease: 'power4.out', stagger: 0.08,
-            scrollTrigger: { trigger: section, start: 'top 78%', once: true },
+            opacity: 1, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.08,
+            scrollTrigger: { trigger: section, start: 'top 80%', once: true },
           }
         );
       });
@@ -126,7 +143,7 @@ export default function BlueprintPage() {
         <div className="vp-wrap">
           <div className="vp-section-head">
             <p className="vp-eyebrow reveal">COVERAGE</p>
-            <h2 className="reveal" id="coverage-title">Five cities. 42+ vendors. One search.</h2>
+            <h2 className="reveal" id="coverage-title">Five cities. 42+ publishers. One search.</h2>
           </div>
           <div className="vp-metrics reveal" style={{ gridTemplateColumns: 'repeat(4, minmax(0,1fr))', maxWidth: 800 }}>
             <div className="vp-metric">
@@ -135,7 +152,7 @@ export default function BlueprintPage() {
             </div>
             <div className="vp-metric">
               <strong data-count="42" data-suffix="+">42+</strong>
-              <span>Vendors consolidated</span>
+              <span>Publishers consolidated</span>
             </div>
             <div className="vp-metric">
               <strong data-count="4.5" data-suffix=" min">4.5 min</strong>

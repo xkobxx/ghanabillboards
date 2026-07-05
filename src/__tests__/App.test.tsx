@@ -76,9 +76,9 @@ describe('App Routing', () => {
     expect(screen.getByText(/GATEWAY STREAM/)).toBeInTheDocument();
   });
 
-  it('renders auth gate on /advertiser route when not logged in', () => {
+  it('renders auth gate on /buyer route when not logged in', () => {
     render(
-      <MemoryRouter initialEntries={['/advertiser']}>
+      <MemoryRouter initialEntries={['/buyer']}>
         <ThemeProvider>
           <AppProvider>
             <App />
@@ -87,12 +87,12 @@ describe('App Routing', () => {
       </MemoryRouter>
     );
     expect(screen.getByText('SECURITY CLEARANCE BLOCKED')).toBeInTheDocument();
-    expect(screen.getByText('Advertiser Hub Locked')).toBeInTheDocument();
+    expect(screen.getByText('Buyer Hub Locked')).toBeInTheDocument();
   });
 
-  it('renders auth gate on /vendor route when not logged in', () => {
+  it('renders auth gate on /publisher route when not logged in', () => {
     render(
-      <MemoryRouter initialEntries={['/vendor']}>
+      <MemoryRouter initialEntries={['/publisher']}>
         <ThemeProvider>
           <AppProvider>
             <App />
@@ -118,17 +118,17 @@ describe('App Routing', () => {
     expect(screen.getByText('Administrator Console Locked')).toBeInTheDocument();
   });
 
-  it('blocks an advertiser account from vendor and admin workspaces', () => {
+  it('blocks a buyer account from publisher and admin workspaces', () => {
     localStorage.setItem('vantage_current_user', JSON.stringify({
-      id: 'usr_adv',
-      email: 'advertiser@example.com',
-      name: 'Example Advertiser',
-      role: 'advertiser',
+      id: 'usr_buy',
+      email: 'buyer@example.com',
+      name: 'Example Buyer',
+      role: 'buyer',
       company: 'Example Brands',
     }));
 
     render(
-      <MemoryRouter initialEntries={['/vendor']}>
+      <MemoryRouter initialEntries={['/publisher']}>
         <ThemeProvider>
           <AppProvider>
             <App />
@@ -164,17 +164,17 @@ describe('App Routing', () => {
     expect(screen.getByRole('dialog', { name: 'Navigation menu' })).toBeInTheDocument();
   });
 
-  it('exposes advertiser workspace navigation as accessible tabs', () => {
+  it('exposes buyer workspace navigation as accessible tabs', () => {
     localStorage.setItem('vantage_current_user', JSON.stringify({
-      id: 'usr_adv',
-      email: 'advertiser@example.com',
-      name: 'Example Advertiser',
-      role: 'advertiser',
+      id: 'usr_buy',
+      email: 'buyer@example.com',
+      name: 'Example Buyer',
+      role: 'buyer',
       company: 'Example Brands',
     }));
 
     render(
-      <MemoryRouter initialEntries={['/advertiser']}>
+      <MemoryRouter initialEntries={['/buyer']}>
         <ThemeProvider>
           <AppProvider>
             <App />
@@ -183,22 +183,22 @@ describe('App Routing', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('tablist', { name: 'Advertiser workspace' })).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'Buyer workspace' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('opens billboard creation as a labelled dialog', async () => {
     const user = userEvent.setup();
     localStorage.setItem('vantage_current_user', JSON.stringify({
-      id: 'usr_vendor',
-      email: 'vendor@example.com',
+      id: 'usr_pub',
+      email: 'publisher@example.com',
       name: 'Example Publisher',
-      role: 'vendor',
+      role: 'publisher',
       company: 'Example Media',
     }));
 
     render(
-      <MemoryRouter initialEntries={['/vendor']}>
+      <MemoryRouter initialEntries={['/publisher']}>
         <ThemeProvider>
           <AppProvider>
             <App />

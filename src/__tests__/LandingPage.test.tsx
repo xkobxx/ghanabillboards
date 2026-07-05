@@ -43,12 +43,12 @@ describe('LandingPage', () => {
   it('renders the platform section with role cards', () => {
     render(<TestWrapper><LandingPage /></TestWrapper>);
     expect(screen.getByText('What is Vantage Point')).toBeInTheDocument();
-    expect(screen.getByText(/For advertisers, vendors, and operators/)).toBeInTheDocument();
+    expect(screen.getByText(/For buyers, publishers, and operators/)).toBeInTheDocument();
   });
 
   it('renders the flow section', () => {
     render(<TestWrapper><LandingPage /></TestWrapper>);
-    expect(screen.getByText('Advertiser flow')).toBeInTheDocument();
+    expect(screen.getByText('Buyer flow')).toBeInTheDocument();
   });
 
   it('renders CTA buttons', () => {

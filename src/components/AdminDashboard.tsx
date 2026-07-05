@@ -205,7 +205,7 @@ export default function AdminDashboard({ billboards, bookings, onUpdateBookingSt
                 <tbody className="font-mono text-caption text-[var(--color-text-secondary)]">
                   <tr className="border-b border-[var(--color-border)]">
                     <td className="py-4">usr_9921</td>
-                    <td className="py-4"><span className="bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded">Advertiser</span></td>
+                    <td className="py-4"><span className="bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded">Buyer</span></td>
                     <td className="py-4 text-emerald-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" /> Active</td>
                     <td className="py-4 font-mono text-[var(--color-text-muted)]">197.210.64.12</td>
                     <td className="py-4 text-right"><span className="cursor-pointer hover:text-[var(--color-text-primary)] transition-colors">REVOKE</span></td>
@@ -369,7 +369,7 @@ export default function AdminDashboard({ billboards, bookings, onUpdateBookingSt
                   <div className="font-mono text-caption text-[var(--color-text-muted)] mt-1">15% of gross</div>
                 </div>
                 <div className="bg-[var(--color-surface)]/50 border border-[var(--color-border)] p-4 rounded-xl">
-                  <div className="font-mono text-caption text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Vendor Payouts</div>
+                  <div className="font-mono text-caption text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Publisher Payouts</div>
                   <div className="text-2xl font-bold text-[var(--color-text-primary)]">${Math.round(totalEscrow * 0.85).toLocaleString()}</div>
                   <div className="font-mono text-caption text-[var(--color-text-muted)] mt-1">85% to media owners</div>
                 </div>
@@ -433,7 +433,7 @@ export default function AdminDashboard({ billboards, bookings, onUpdateBookingSt
                     { type: 'email', event: 'Booking confirmation sent', recipient: 'sora@dynamics.co', time: '2 min ago', ok: true },
                     { type: 'sms', event: 'Booking approved alert', recipient: '+233 50 123 4567', time: '5 min ago', ok: true },
                     { type: 'email', event: 'Invoice INV-4401 delivered', recipient: 'billing@globalbrands.com', time: '18 min ago', ok: true },
-                    { type: 'email', event: 'New vendor registration', recipient: 'admin@vantagepoint.com', time: '1 hour ago', ok: true },
+                    { type: 'email', event: 'New publisher registration', recipient: 'admin@vantagepoint.com', time: '1 hour ago', ok: true },
                     { type: 'sms', event: 'Campaign live alert', recipient: '+234 81 987 6543', time: '2 hours ago', ok: true },
                   ].map((n, i) => (
                     <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface)]/30 border border-[var(--color-border)]">
@@ -627,7 +627,7 @@ export default function AdminDashboard({ billboards, bookings, onUpdateBookingSt
                                 <span className="text-[var(--color-text-muted)]">2 mins ago</span>
                               </div>
                               <div className="border border-[var(--color-border)] bg-[var(--color-surface)]/50 p-2 rounded flex justify-between">
-                                <span className="text-[var(--color-text-secondary)]">Approved Vendor #4928</span>
+                                <span className="text-[var(--color-text-secondary)]">Approved Publisher #4928</span>
                                 <span className="text-[var(--color-text-muted)]">1 hour ago</span>
                               </div>
                               <div className="border border-[var(--color-border)] bg-[var(--color-surface)]/50 p-2 rounded flex justify-between">

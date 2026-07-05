@@ -8,14 +8,14 @@ const DEMO_PASSWORD = bcrypt.hashSync('password', 12);
 async function main() {
   // ── Users ─────────────────────────────────────────────────────────────────
   await prisma.user.upsert({
-    where: { email: 'advertiser@vantagepoint.com' },
+    where: { email: 'buyer@vantagepoint.com' },
     update: {},
     create: {
       id: 'usr_demo_adv',
-      email: 'advertiser@vantagepoint.com',
+      email: 'buyer@vantagepoint.com',
       password: DEMO_PASSWORD,
       name: 'Vanguard Brands Corp',
-      role: 'advertiser',
+      role: 'buyer',
       company: 'Vanguard Media Group',
     },
   });
@@ -28,7 +28,7 @@ async function main() {
       email: 'publisher@vantagepoint.com',
       password: DEMO_PASSWORD,
       name: 'Apex OOH Screens',
-      role: 'vendor',
+      role: 'publisher',
       company: 'Apex Publishers Intern.',
     },
   });
@@ -214,8 +214,8 @@ async function main() {
   console.log('✅ Database seeded successfully');
   console.log('');
   console.log('Demo credentials (password: "password" for all):');
-  console.log('  advertiser  →  advertiser@vantagepoint.com');
-  console.log('  vendor      →  publisher@vantagepoint.com');
+  console.log('  buyer       →  buyer@vantagepoint.com');
+  console.log('  publisher   →  publisher@vantagepoint.com');
   console.log('  admin       →  admin@vantagepoint.com');
   console.log('  investor    →  investor@vantagepoint.com');
 }

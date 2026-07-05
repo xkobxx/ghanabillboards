@@ -8,10 +8,36 @@ generator client {
 }
 
 enum UserRole {
-  advertiser
-  vendor
+  buyer
+  publisher
   admin
   investor
+}
+
+enum BillingCurrency {
+  USD
+  GHS
+  NGN
+  KES
+  ZAR
+}
+
+enum ApprovalWorkflow {
+  DIRECT
+  MANAGER
+}
+
+enum InvoiceStatus {
+  ISSUED
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum CreativeStatus {
+  UPLOADED
+  APPROVED
+  REJECTED
 }
 
 enum BillboardStatus {
@@ -21,9 +47,12 @@ enum BillboardStatus {
 }
 
 enum BookingStatus {
+  AwaitingCreative
+  AwaitingManager
   PendingApproved
   Live
   Completed
+  Rejected
 }
 
 enum TrafficVolume {
@@ -48,60 +77,192 @@ enum ApiModule {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  password      String
-  name          String
-  role          UserRole
-  company       String?
-  avatar        String?
-  bio           String?
-  phone         String?
-  location      String?
-  website       String?
-  emailVerified Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                  String              @id @default(cuid())
+  email               String              @unique
+  password            String
+  name                String
+  role                UserRole
+  company             String?
+  avatar              String?
+  bio                 String?
+  phone               String?
+  location            String?
+  website             String?
+  emailVerified       Boolean             @default(false)
+  mfaEnabled          Boolean             @default(false)
+  buyerSetting        BuyerSetting?
+  bookings            Booking[]
+  mfaFactor           MfaFactor?
+  sessions            AuthSession[]
+  notifications       Notification[]
+  availabilityWatches AvailabilityWatch[]
+  creativeAssets      CreativeAsset[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model MfaFactor {
+  userId           String            @id
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encryptedSecret  String
+  confirmedAt      DateTime?
+  lastUsedTimeStep BigInt?
+  recoveryCodes    MfaRecoveryCode[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  factorId  String
+  factor    MfaFactor @relation(fields: [factorId], references: [userId], onDelete: Cascade)
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([factorId, usedAt])
+}
+
+model AuthSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceHash String
+  ipPrefix   String
+  userAgent  String
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@unique([userId, deviceHash])
+  @@index([userId, lastSeenAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model BuyerSetting {
+  userId                 String           @id
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingCurrency        BillingCurrency  @default(USD)
+  defaultFlightDays      Int              @default(14)
+  budgetCapMinor         BigInt?
+  approvalWorkflow       ApprovalWorkflow @default(DIRECT)
+  bookingStatusAlerts    Boolean          @default(true)
+  availabilityAlerts     Boolean          @default(true)
+  invoiceAlerts          Boolean          @default(true)
+  sessionAlerts          Boolean          @default(true)
+  creativeReviewRequired Boolean          @default(false)
+  version                Int              @default(1)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 }
 
 model Billboard {
-  id                 String          @id
-  title              String
-  location           String
-  city               String
-  country            String
-  dailyRate          Float
-  format             String
-  dimensions         String
-  monthlyImpressions String
-  trafficVolume      TrafficVolume
-  status             BillboardStatus @default(Available)
-  lat                Float
-  lng                Float
-  imageUrl           String
-  description        String
-  bookings           Booking[]
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id                  String              @id
+  title               String
+  location            String
+  city                String
+  country             String
+  dailyRate           Float
+  format              String
+  dimensions          String
+  monthlyImpressions  String
+  trafficVolume       TrafficVolume
+  status              BillboardStatus     @default(Available)
+  lat                 Float
+  lng                 Float
+  imageUrl            String
+  description         String
+  bookings            Booking[]
+  availabilityWatches AvailabilityWatch[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
 
 model Booking {
-  id           String        @id @default(cuid())
-  billboardId  String
-  billboard    Billboard     @relation(fields: [billboardId], references: [id])
-  startDate    String
-  endDate      String
-  startAt      DateTime?
-  endAt        DateTime?
-  campaignName String
-  clientName   String
-  totalCost    Float
-  status       BookingStatus @default(PendingApproved)
-  slogan       String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                String          @id @default(cuid())
+  billboardId       String
+  billboard         Billboard       @relation(fields: [billboardId], references: [id])
+  buyerId           String?
+  buyer             User?           @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+  startDate         String
+  endDate           String
+  startAt           DateTime?
+  endAt             DateTime?
+  campaignName      String
+  clientName        String
+  totalCost         Float
+  billingCurrency   BillingCurrency @default(USD)
+  displayTotalMinor BigInt?
+  invoiceCode       String?         @unique
+  invoice           Invoice?
+  creativeAssets    CreativeAsset[]
+  status            BookingStatus   @default(PendingApproved)
+  slogan            String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   @@index([billboardId, startAt, endAt])
+  @@index([buyerId, createdAt])
+}
+
+model CreativeAsset {
+  id          String         @id @default(cuid())
+  bookingId   String
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  buyerId     String
+  buyer       User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  fileName    String
+  contentType String
+  sizeBytes   Int
+  storageUrl  String
+  status      CreativeStatus @default(UPLOADED)
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([bookingId, createdAt])
+  @@index([buyerId, status])
+}
+
+model Invoice {
+  id         String          @id @default(cuid())
+  bookingId  String          @unique
+  booking    Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  code       String          @unique
+  currency   BillingCurrency
+  totalMinor BigInt
+  status     InvoiceStatus   @default(ISSUED)
+  issuedAt   DateTime        @default(now())
+  paidAt     DateTime?
+  dueAt      DateTime
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model AvailabilityWatch {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billboardId String
+  billboard   Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, billboardId])
+  @@index([billboardId, active])
 }
 
 model GatewayLog {

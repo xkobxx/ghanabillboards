@@ -52,3 +52,16 @@ export function requireRole(...roles: string[]) {
 export function signToken(payload: JwtPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }
+
+export function signMfaToken(userId: string): string {
+  return jwt.sign({ userId, purpose: 'mfa' }, JWT_SECRET, { expiresIn: '5m' });
+}
+
+export function verifyMfaToken(token: string): { userId: string; purpose: 'mfa' } | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: string; purpose?: string };
+    return payload.purpose === 'mfa' ? { userId: payload.userId, purpose: 'mfa' } : null;
+  } catch {
+    return null;
+  }
+}

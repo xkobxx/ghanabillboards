@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Bell, Mail, MessageSquare, Bell as BellIcon, X, CheckCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { AppNotification } from '../types';
 
-const CHANNEL_ICON: Record<AppNotification['channel'], React.ReactNode> = {
+const CHANNEL_ICON: Record<AppNotification['channel'], ReactNode> = {
   'in-app': <BellIcon size={11} />,
   'email':  <Mail size={11} />,
   'sms':    <MessageSquare size={11} />,

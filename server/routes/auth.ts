@@ -2,9 +2,11 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../db';
-import { authenticate, signToken } from '../middleware/auth';
+import { authenticate, signMfaToken, signToken, verifyMfaToken } from '../middleware/auth';
 import { authLimiter } from '../middleware/rateLimiter';
 import { validate } from '../middleware/validate';
+import { verifyMfaOrRecovery } from '../services/mfaService';
+import { recordSession } from '../services/sessionService';
 
 const router = Router();
 
@@ -12,7 +14,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().min(1),
-  role: z.enum(['advertiser', 'vendor', 'admin', 'investor']),
+  role: z.enum(['buyer', 'publisher', 'admin', 'investor']),
   company: z.string().optional(),
 });
 
@@ -20,6 +22,39 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+const mfaLoginSchema = z.object({
+  mfaToken: z.string().min(1),
+  token: z.string().min(6).max(32),
+});
+
+function publicUser(user: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  company: string | null;
+  avatar?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  website?: string | null;
+  mfaEnabled?: boolean;
+}) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    company: user.company,
+    avatar: user.avatar,
+    bio: user.bio,
+    phone: user.phone,
+    location: user.location,
+    website: user.website,
+    mfaEnabled: user.mfaEnabled,
+  };
+}
 
 router.post('/register', authLimiter, validate(registerSchema), async (req: Request, res: Response) => {
   try {
@@ -43,15 +78,10 @@ router.post('/register', authLimiter, validate(registerSchema), async (req: Requ
     });
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
+    await recordSession(req, user.id);
     res.status(201).json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        company: user.company,
-      },
+      user: publicUser(user),
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -75,21 +105,16 @@ router.post('/login', authLimiter, validate(loginSchema), async (req: Request, r
       return;
     }
 
+    if (user.mfaEnabled) {
+      res.status(202).json({ mfaRequired: true, mfaToken: signMfaToken(user.id) });
+      return;
+    }
+
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
+    await recordSession(req, user.id);
     res.json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        company: user.company,
-        avatar: user.avatar,
-        bio: user.bio,
-        phone: user.phone,
-        location: user.location,
-        website: user.website,
-      },
+      user: publicUser(user),
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -97,10 +122,26 @@ router.post('/login', authLimiter, validate(loginSchema), async (req: Request, r
   }
 });
 
+router.post('/login/mfa', authLimiter, validate(mfaLoginSchema), async (req: Request, res: Response) => {
+  const challenge = verifyMfaToken(req.body.mfaToken);
+  if (!challenge || !await verifyMfaOrRecovery(challenge.userId, req.body.token)) {
+    res.status(401).json({ error: 'Invalid or expired authentication code' });
+    return;
+  }
+  const user = await prisma.user.findUnique({ where: { id: challenge.userId } });
+  if (!user) {
+    res.status(401).json({ error: 'Invalid authentication challenge' });
+    return;
+  }
+  const token = signToken({ userId: user.id, email: user.email, role: user.role });
+  await recordSession(req, user.id);
+  res.json({ token, user: publicUser(user) });
+});
+
 router.get('/me', authenticate, async (req: Request, res: Response) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.userId },
-    select: { id: true, email: true, name: true, role: true, company: true, avatar: true, bio: true, phone: true, location: true, website: true, createdAt: true },
+    select: { id: true, email: true, name: true, role: true, company: true, avatar: true, bio: true, phone: true, location: true, website: true, mfaEnabled: true, createdAt: true },
   });
   if (!user) {
     res.status(404).json({ error: 'User not found' });

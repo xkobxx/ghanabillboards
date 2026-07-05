@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { User } from '../types';
 import AuthStage from './AuthStage';
+import { authApi } from '../lib/authApi';
 
 interface RegisterProps {
   onSuccess: (user: User) => void;
@@ -9,17 +10,16 @@ interface RegisterProps {
   onCancel: () => void;
 }
 
-type RegisterRole = 'advertiser' | 'vendor' | 'admin' | 'investor';
+type RegisterRole = 'buyer' | 'publisher' | 'investor';
 
 interface StoredUser extends User {
   password: string;
 }
 
-const ROLE_OPTIONS: { value: RegisterRole; label: string; desc: string }[] = [
-  { value: 'advertiser', label: 'Advertiser', desc: 'Book and manage campaigns.' },
-  { value: 'vendor', label: 'Vendor', desc: 'List inventory and review bookings.' },
-  { value: 'admin', label: 'Admin', desc: 'Control telemetry and permissions.' },
-  { value: 'investor', label: 'Investor', desc: 'Review the growth deck.' },
+const ROLE_OPTIONS: { value: RegisterRole; label: string }[] = [
+  { value: 'buyer', label: 'Buyer' },
+  { value: 'publisher', label: 'Publisher' },
+  { value: 'investor', label: 'Investor' },
 ];
 
 export default function Register({
@@ -30,7 +30,7 @@ export default function Register({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<RegisterRole>('advertiser');
+  const [role, setRole] = useState<RegisterRole>('buyer');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const registrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,7 +62,7 @@ export default function Register({
     );
   };
 
-  const handleRegisterSubmit = (event: React.FormEvent) => {
+  const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
 
@@ -73,16 +73,22 @@ export default function Register({
 
     setIsLoading(true);
     cancelPendingRegistration();
-    registrationTimeoutRef.current = setTimeout(() => {
-      registrationTimeoutRef.current = null;
-      setIsLoading(false);
-
+    try {
+      const session = await authApi.register({
+        name,
+        email: email.toLowerCase(),
+        password,
+        role,
+        company: 'Autonomous Agent Co.',
+      });
+      onSuccess(session.user);
+    } catch (reason) {
       const users = getRegisteredUsers();
       if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
         setError('Email already registered. Try signing in instead.');
+        setIsLoading(false);
         return;
       }
-
       const id = `${role}_${crypto.randomUUID()}`;
       const registeredUser: StoredUser = {
         id,
@@ -92,16 +98,12 @@ export default function Register({
         password,
         role,
       };
-
       saveRegisteredUser(registeredUser);
-      onSuccess({
-        id,
-        name,
-        email,
-        role,
-        company: registeredUser.company,
-      });
-    }, 1000);
+      onSuccess(registeredUser);
+      if (reason instanceof Error && !navigator.onLine) setError('Saved locally while the gateway is offline.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -121,7 +123,7 @@ export default function Register({
       <p className="vp-eyebrow">Create account</p>
       <h1 className="text-3xl" style={{ margin: '0 0 12px', letterSpacing: '-.04em', color: 'var(--vp-ink)', textWrap: 'balance' }}>Sign up</h1>
       <p className="text-lg" style={{ color: 'var(--vp-muted)', lineHeight: 1.62, margin: 0 }}>
-        Choose a role so the product can route you into the correct dashboard.
+        Create your account and select your role.
       </p>
 
       {error ? (
@@ -187,8 +189,7 @@ export default function Register({
               disabled={isLoading}
               onClick={() => setRole(opt.value)}
             >
-              <strong>{opt.label}</strong>
-              <span>{opt.desc}</span>
+              {opt.label}
             </button>
           ))}
         </div>

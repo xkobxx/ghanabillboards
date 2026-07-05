@@ -101,8 +101,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.json(billboard);
 });
 
-// Vendor/Admin: create billboard
-router.post('/', authenticate, requireRole('vendor', 'admin'), validate(createBillboardSchema), async (req: Request, res: Response) => {
+// Publisher/Admin: create billboard
+router.post('/', authenticate, requireRole('publisher', 'admin'), validate(createBillboardSchema), async (req: Request, res: Response) => {
   const existing = await prisma.billboard.findUnique({ where: { id: req.body.id } });
   if (existing) {
     res.status(409).json({ error: 'Billboard with this ID already exists' });
@@ -113,8 +113,8 @@ router.post('/', authenticate, requireRole('vendor', 'admin'), validate(createBi
   res.status(201).json(billboard);
 });
 
-// Vendor/Admin: update billboard
-router.patch('/:id', authenticate, requireRole('vendor', 'admin'), validate(updateBillboardSchema), async (req: Request, res: Response) => {
+// Publisher/Admin: update billboard
+router.patch('/:id', authenticate, requireRole('publisher', 'admin'), validate(updateBillboardSchema), async (req: Request, res: Response) => {
   const billboard = await prisma.billboard.findUnique({ where: { id: req.params.id } });
   if (!billboard) {
     res.status(404).json({ error: 'Billboard not found' });
@@ -128,8 +128,8 @@ router.patch('/:id', authenticate, requireRole('vendor', 'admin'), validate(upda
   res.json(updated);
 });
 
-// Vendor/Admin: delete billboard
-router.delete('/:id', authenticate, requireRole('vendor', 'admin'), async (req: Request, res: Response) => {
+// Publisher/Admin: delete billboard
+router.delete('/:id', authenticate, requireRole('publisher', 'admin'), async (req: Request, res: Response) => {
   const billboard = await prisma.billboard.findUnique({ where: { id: req.params.id } });
   if (!billboard) {
     res.status(404).json({ error: 'Billboard not found' });

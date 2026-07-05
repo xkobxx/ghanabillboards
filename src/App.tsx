@@ -1,11 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useTheme } from './context/ThemeContext';
 import { useApp } from './context/AppContext';
+import { useBuyerSettings } from './hooks/useBuyerSettings';
 
 import SEOHead from './components/SEOHead';
 import Navbar from './components/Navbar';
@@ -13,8 +14,8 @@ import LandingPage from './pages/LandingPage';
 import BlueprintPage from './pages/BlueprintPage';
 import InvestorPage from './pages/InvestorPage';
 import DeveloperPage from './pages/DeveloperPage';
-import AdvertiserPage from './pages/AdvertiserPage';
-import VendorPage from './pages/VendorPage';
+import BuyerPage from './pages/BuyerPage';
+import PublisherPage from './pages/PublisherPage';
 import AdminPage from './pages/AdminPage';
 import BookingPage from './pages/BookingPage';
 import BookingDrawer from './components/BookingDrawer';
@@ -50,8 +51,7 @@ export default function App() {
   const isCinematic = theme === 'cinematic';
   const location = useLocation();
   const navigate = useNavigate();
-  const isPortalRoute = ['/advertiser', '/vendor', '/admin', '/investor'].includes(location.pathname);
-  const isLanding = location.pathname === '/';
+  const isPortalRoute = ['/buyer', '/publisher', '/admin', '/investor'].includes(location.pathname);
 
   const {
     currentUser,
@@ -64,6 +64,7 @@ export default function App() {
     signOut,
     registerBooking,
   } = useApp();
+  const { settings: buyerSettings } = useBuyerSettings(currentUser?.id || 'anonymous');
 
   const cursorDotRef = useRef<HTMLDivElement>(null);
   const cursorOutlineRef = useRef<HTMLDivElement>(null);
@@ -79,7 +80,28 @@ export default function App() {
     gsap.ticker.add((time) => { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
 
-    return () => { lenis.destroy(); };
+    // Nav entrance animation
+    const navEl = document.querySelector('.vp-nav');
+    if (navEl) {
+      gsap.fromTo(navEl, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', delay: 0.1 });
+    }
+
+    // Sticky nav — shrink on scroll
+    const onScroll = ({ scroll }: { scroll: number }) => {
+      const nav = document.querySelector('.vp-nav');
+      if (!nav) return;
+      if (scroll > 80) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    };
+    lenis.on('scroll', onScroll);
+
+    return () => {
+      lenis.off('scroll', onScroll);
+      lenis.destroy();
+    };
   }, []);
 
   useEffect(() => {
@@ -127,7 +149,7 @@ export default function App() {
           { opacity: 0, y: 50 },
           {
             opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
-            scrollTrigger: { trigger: el, start: 'top 85%' },
+            scrollTrigger: { trigger: el, start: 'top 80%' },
           }
         );
       });
@@ -138,7 +160,7 @@ export default function App() {
           { clipPath: 'inset(0 0 100% 0)' },
           {
             clipPath: 'inset(0 0 0% 0)', duration: 1.1, ease: 'power4.out',
-            scrollTrigger: { trigger: el, start: 'top 88%' },
+            scrollTrigger: { trigger: el, start: 'top 82%' },
           }
         );
       });
@@ -150,8 +172,8 @@ export default function App() {
             el,
             { opacity: 0, y: 36 },
             {
-              opacity: 1, y: 0, duration: 1.05, ease: 'power4.out',
-              scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+              opacity: 1, y: 0, duration: 1.05, ease: 'power3.out',
+              scrollTrigger: { trigger: el, start: 'top 80%', once: true },
             }
           );
         });
@@ -192,62 +214,49 @@ export default function App() {
         <Route path="/blueprint" element={<BlueprintPage />} />
         <Route path="/investor" element={<RequireAuth role="investor"><InvestorPage /></RequireAuth>} />
         <Route path="/developer" element={<DeveloperPage />} />
-        <Route path="/advertiser" element={<RequireAuth role="advertiser"><AdvertiserPage /></RequireAuth>} />
-        <Route path="/vendor" element={<RequireAuth role="vendor"><VendorPage /></RequireAuth>} />
+        <Route path="/buyer" element={<RequireAuth role="buyer"><BuyerPage /></RequireAuth>} />
+        <Route path="/publisher" element={<RequireAuth role="publisher"><PublisherPage /></RequireAuth>} />
         <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
       </Routes>
 
-      {/* Route-aware footer — landing page has its own footer */}
-      {!isLanding && (
-        isPortalRoute ? (
-          <footer className="relative z-30 border-t border-[var(--color-border)] bg-[var(--color-surface)] py-5">
-            <div className="mx-auto flex max-w-[1440px] flex-col justify-between gap-2 px-6 font-mono text-caption uppercase tracking-[0.12em] text-[var(--color-text-muted)] sm:flex-row sm:px-12">
-              <span>Vantage Point partner network</span>
-              <span>Secure marketplace operations · 2026</span>
-            </div>
-          </footer>
-        ) : (
-          <footer className="border-t border-[var(--color-border)] py-16 mt-20 bg-[var(--color-black)] text-[var(--color-text-secondary)] clip-reveal">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 text-xs">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-[var(--color-primary)] flex items-center justify-center rounded-sm">
-                    <div className="w-2.5 h-2.5 bg-[var(--color-black)] rotate-45"></div>
-                  </div>
-                  <span className="font-serif font-bold text-[var(--color-text-primary)] uppercase tracking-widest text-sm">Vantage Point</span>
+      {/* Public-page footer; portal metadata lives in the app shell sidebar. */}
+      {!isPortalRoute && (
+        <footer className="border-t border-[var(--color-border)] bg-[var(--color-background)]">
+          <div className="max-w-[1200px] mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-8">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-4 h-4 bg-[var(--color-primary)] flex items-center justify-center rounded-sm">
+                  <div className="w-2 h-2 bg-[var(--color-black)] rotate-45" />
                 </div>
-                <p className="font-sans leading-relaxed text-[var(--color-text-secondary)]">
-                  The premium programmatic exchange platform connecting international media agencies with strategic metropolitan billboards across developing trade regions.
-                </p>
+                <span className="font-serif font-bold text-[var(--color-text-primary)] tracking-wider text-sm">Vantage Point</span>
               </div>
-              <div className="space-y-4 font-mono">
-                <span className="text-[var(--color-primary)] block uppercase text-caption tracking-[0.2em] font-bold">SYSTEM METRIC NODES</span>
-                <div className="grid grid-cols-2 gap-4 text-body-xs text-[var(--color-text-secondary)]">
-                  <div className="hover:text-[var(--color-primary)] transition-colors cursor-pointer">• Lagos [NGR-LG-01]</div>
-                  <div className="hover:text-[var(--color-primary)] transition-colors cursor-pointer">• Accra [GHA-ACC-01]</div>
-                  <div className="hover:text-[var(--color-primary)] transition-colors cursor-pointer">• Nairobi [KEN-NBO-01]</div>
-                  <div className="hover:text-[var(--color-primary)] transition-colors cursor-pointer font-bold">• Sandton [RSA-JNB-01]</div>
-                </div>
-              </div>
-              <div className="space-y-4 font-sans">
-                <span className="text-[var(--color-primary)] block uppercase text-caption tracking-[0.2em] font-bold">REGULATORY PROTECTION</span>
-                <p className="text-[var(--color-text-secondary)] text-body-xs leading-relaxed">
-                  All transactional programmatic booking values are protected by escrow. Early factoring, multi-regional payment settlements in partnership with Paystack clearance models.
-                </p>
-              </div>
+              <p className="text-caption font-mono text-[var(--color-text-muted)] max-w-xs leading-relaxed">
+                Programmatic exchange for emerging markets
+              </p>
             </div>
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-8 mt-12 border-t border-[var(--color-border)] flex justify-between items-center text-caption font-mono text-[var(--color-text-muted)] uppercase tracking-[0.2em]">
-              <span>© 2026 VANTAGE POINT. ALL RIGHTS RESERVED.</span>
-              <span>Designed with absolute cinematic discipline</span>
+            <div className="grid grid-cols-2 gap-x-10 gap-y-1.5 text-caption font-mono text-[var(--color-text-muted)] uppercase tracking-wider">
+              <Link to="/booking" className="hover:text-[var(--color-primary-text)] transition-colors">Booking</Link>
+              <Link to="/blueprint" className="hover:text-[var(--color-primary-text)] transition-colors">Blueprint</Link>
+              <a href="mailto:hello@vantagepoint.media" className="hover:text-[var(--color-primary-text)] transition-colors">Contact</a>
+              <Link to="/" className="hover:text-[var(--color-primary-text)] transition-colors">About</Link>
             </div>
-          </footer>
-        )
+          </div>
+          <div className="border-t border-[var(--color-border)]">
+            <div className="max-w-[1200px] mx-auto px-6 sm:px-10 py-4 flex flex-col sm:flex-row justify-between gap-1 text-caption font-mono text-[var(--color-text-muted)]">
+              <span>© 2026 Vantage Point</span>
+              <span>Media Network</span>
+            </div>
+          </div>
+        </footer>
       )}
 
       <BookingDrawer
         billboard={selectedBillboard}
         onClose={() => setSelectedBillboard(null)}
         onConfirmBooking={registerBooking}
+        defaultFlightDays={buyerSettings.defaultFlightDays}
+        billingCurrency={buyerSettings.billingCurrency}
+        budgetCapMinor={buyerSettings.budgetCapMinor}
       />
 
       {authMode === 'signin' && (

@@ -135,7 +135,7 @@ export default function DeveloperConsole() {
               </div>
               <button
                 type="button"
-                onClick={() => handleTriggerSimulatedRequest('/api/v1/auth/exchange', 'POST', 'Auth', '{"userId": "usr_9921", "role": "Advertiser", "issuer": "OOH-Gateway"}' )}
+                onClick={() => handleTriggerSimulatedRequest('/api/v1/auth/exchange', 'POST', 'Auth', '{"userId": "usr_9921", "role": "Buyer", "issuer": "OOH-Gateway"}' )}
                 disabled={isSimulatingRequest}
                 className="w-full py-2.5 px-3.5 text-xs font-mono bg-[var(--color-surface)]/50 border border-[var(--color-border)] hover:border-[var(--color-border-hover)] text-[var(--color-text-primary)] flex items-center justify-between rounded cursor-pointer transition-all text-left uppercase tracking-wider"
               >

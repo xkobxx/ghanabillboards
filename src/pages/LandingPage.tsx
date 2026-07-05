@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -21,16 +21,16 @@ const ROLE_CARDS = [
     cta: 'Start booking',
     href: '/booking',
     alt: 'Billboard at an urban intersection at dusk',
-    tag: 'Advertiser',
+    tag: 'Buyer',
   },
   {
     title: 'List locations',
     image: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=900&q=80',
     desc: 'Manage your billboard inventory, set rates, approve bookings, and track revenue.',
-    cta: 'Open vendor view',
-    href: '/vendor',
+    cta: 'Open publisher view',
+    href: '/publisher',
     alt: 'Large format billboards along a city road',
-    tag: 'Vendor',
+    tag: 'Publisher',
   },
   {
     title: 'Operate the gateway',
@@ -56,7 +56,7 @@ const OPERATING_STEPS = [
   { num: '01', Icon: Search, title: 'Discover', desc: 'Search by city, format, traffic volume, price, and availability.' },
   { num: '02', Icon: Tag, title: 'Price', desc: 'See daily rate times your flight dates. No hidden fees.' },
   { num: '03', Icon: CalendarCheck, title: 'Schedule', desc: 'Lock calendar dates. Submitting creates a pending approval record.' },
-  { num: '04', Icon: Activity, title: 'Operate', desc: 'Vendors approve, campaigns go live, and telemetry tracks delivery.' },
+  { num: '04', Icon: Activity, title: 'Operate', desc: 'Publishers approve, campaigns go live, and telemetry tracks delivery.' },
 ];
 
 const PAIN_CARDS = [
@@ -67,7 +67,40 @@ const PAIN_CARDS = [
 
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setAuthMode } = useApp();
+  const { setAuthMode, allBillboards } = useApp();
+
+  // ── Carousel ──────────────────────────────────────────────────────────────
+  const slides = useMemo(() => {
+    const avail = allBillboards.filter(b => b.status === 'Available');
+    return (avail.length > 0 ? avail : allBillboards).slice(0, 8);
+  }, [allBillboards]);
+
+  const [idx, setIdx] = useState(0);
+  const [fading, setFading] = useState(false);
+  const fadingRef = useRef(false);
+
+  const go = useCallback((dir: 1 | -1) => {
+    if (fadingRef.current || slides.length <= 1) return;
+    fadingRef.current = true;
+    setFading(true);
+    setTimeout(() => {
+      setIdx(i => (i + dir + slides.length) % slides.length);
+      setFading(false);
+      fadingRef.current = false;
+    }, 280);
+  }, [slides.length]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'ArrowRight') go(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go]);
+
+  const board = slides[idx] ?? null;
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -76,18 +109,74 @@ export default function LandingPage() {
     const ctx = gsap.context(() => {
       gsap.set('.vp-home .reveal, .vp-home .fade-up', { opacity: 0, y: 36 });
 
+      const heroSection = containerRef.current?.querySelector('.vp-hero');
       containerRef.current?.querySelectorAll('.vp-stage').forEach((section) => {
+        if (section === heroSection) return; // entrance timeline handles hero
         const items = section.querySelectorAll('.reveal, .fade-up');
         if (!items.length) return;
         gsap.fromTo(
           items,
           { opacity: 0, y: 36 },
           {
-            opacity: 1, y: 0, duration: 1.05, ease: 'power4.out', stagger: 0.08,
-            scrollTrigger: { trigger: section, start: 'top 78%', once: true },
+            opacity: 1, y: 0, duration: 1.05, ease: 'power3.out', stagger: 0.08,
+            scrollTrigger: { trigger: section, start: 'top 80%', once: true },
           }
         );
       });
+
+      // ── Page load cinematic entrance ──
+      gsap.set('.vp-hero .vp-eyebrow', { opacity: 0, y: 40 });
+      gsap.set('.vp-hero h1', { opacity: 0, y: 48 });
+      gsap.set('.vp-hero .vp-lead', { opacity: 0, y: 24 });
+      gsap.set('.vp-hero .vp-pill-row', { opacity: 0, y: 20 });
+      gsap.set('.vp-hero .vp-hero-metrics', { opacity: 0, y: 24 });
+      gsap.set('.vp-hero .vp-hero-visual', { opacity: 0, scale: 1.05 });
+      gsap.set('.vp-hero .vp-marquee', { opacity: 0, y: 0 });
+
+      if (!reduce) {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.to('.vp-hero .vp-eyebrow', { opacity: 1, y: 0, duration: 0.7 }, 0.35)
+          .to('.vp-hero h1', { opacity: 1, y: 0, duration: 0.9 }, 0.55)
+          .to('.vp-hero .vp-lead', { opacity: 1, y: 0, duration: 0.7 }, 1.15)
+          .to('.vp-hero .vp-pill-row', { opacity: 1, y: 0, duration: 0.6 }, 1.45)
+          .to('.vp-hero .vp-hero-metrics', { opacity: 1, y: 0, duration: 0.65 }, 1.7)
+          .to('.vp-hero .vp-hero-visual', { opacity: 1, scale: 1, duration: 1.1 }, 2.0)
+          .to('.vp-hero .vp-marquee', { opacity: 1, duration: 0.5 }, 2.3);
+      } else {
+        gsap.set('.vp-hero .vp-eyebrow, .vp-hero h1, .vp-hero .vp-lead, .vp-hero .vp-pill-row, .vp-hero .vp-hero-metrics, .vp-hero .vp-hero-visual, .vp-hero .vp-marquee', { opacity: 1, y: 0, scale: 1 });
+      }
+
+      // ── Stack transitions ── scrub previous card up as next covers it
+      if (!reduce) {
+        const stackCards = gsap.utils.toArray('.vp-stack');
+
+        stackCards.forEach((card, i) => {
+          if (i === stackCards.length - 1) return;
+          const cardEl = card as HTMLElement;
+
+          gsap.to(cardEl, {
+            y: () => -cardEl.offsetHeight,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: stackCards[i + 1] as Element,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 1,
+            },
+          });
+
+          gsap.to(cardEl, {
+            opacity: 0.3,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: stackCards[i + 1] as Element,
+              start: 'top bottom',
+              end: 'top 30%',
+              scrub: 1,
+            },
+          });
+        });
+      }
     }, containerRef);
 
     const root = containerRef.current;
@@ -134,8 +223,8 @@ export default function LandingPage() {
         cleanups.push(() => { btn.removeEventListener('mousemove', move); btn.removeEventListener('mouseleave', reset); });
       });
 
-      // Cursor spotlight on role cards ----------------------------------
-      root.querySelectorAll<HTMLElement>('.vp-role-card').forEach((card) => {
+      // Cursor spotlight on image-led surfaces ---------------------------
+      root.querySelectorAll<HTMLElement>('.vp-role-card, .vp-hero-dossier').forEach((card) => {
         const move = (ev: MouseEvent) => {
           const r = card.getBoundingClientRect();
           card.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`);
@@ -144,6 +233,21 @@ export default function LandingPage() {
         card.addEventListener('mousemove', move);
         cleanups.push(() => card.removeEventListener('mousemove', move));
       });
+
+      // Subtle hero parallax — dossier shifts on scroll
+      const dossier = root.querySelector<HTMLElement>('.vp-hero-dossier');
+      const heroStage = root.querySelector<HTMLElement>('.vp-hero');
+      if (dossier && heroStage) {
+        const onParallax = () => {
+          const rect = heroStage.getBoundingClientRect();
+          if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+          const pct = -rect.top / (rect.height + window.innerHeight);
+          const offset = 24 * Math.max(-0.5, Math.min(0.5, pct));
+          dossier.style.transform = `translateZ(0) translateY(${offset}px)`;
+        };
+        window.addEventListener('scroll', onParallax, { passive: true });
+        cleanups.push(() => window.removeEventListener('scroll', onParallax));
+      }
     }
 
     return () => { ctx.revert(); cleanups.forEach((c) => c()); };
@@ -188,37 +292,62 @@ export default function LandingPage() {
               <button onClick={() => setAuthMode('register')} className="vp-btn">Create account</button>
             </div>
             <div className="vp-metrics vp-hero-metrics reveal" aria-label="Platform metrics">
-              <div className="vp-metric"><strong data-count="4.5" data-suffix="min">4.5min</strong><span>Avg. time to book</span></div>
+              <Link to="/booking" className="vp-metric vp-metric-accent"><strong data-count="4.5" data-suffix="min">4.5min</strong><span>Avg. time to book</span></Link>
               <div className="vp-metric"><strong data-count="5">5</strong><span>Cities live today</span></div>
-              <div className="vp-metric"><strong data-count="42" data-suffix="+">42+</strong><span>Vendors consolidated</span></div>
+              <div className="vp-metric"><strong data-count="42" data-suffix="+">42+</strong><span>Publishers consolidated</span></div>
             </div>
           </div>
 
-          {/* Product proof: a live inventory card over real billboard imagery */}
-          <div className="vp-hero-visual reveal" aria-hidden="true">
-            <div className="vp-hero-photo">
-              <img
-                src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1000&q=80"
-                alt=""
-                loading="eager"
-              />
-              <span className="vp-live-dot"><i />Live inventory</span>
-            </div>
-            <div className="vp-hero-inv">
-              <div className="vp-inv-top">
-                <span className="vp-inv-loc"><MapPin className="w-3.5 h-3.5" /> Oxford St · Osu, Accra</span>
-                <span className="vp-inv-avail">Available</span>
-              </div>
-              <div className="vp-inv-meta">
-                <div><b>Digital</b><small>96-sheet</small></div>
-                <div><b>182k</b><small>daily views</small></div>
-                <div><b>GHS 4,200</b><small>per day</small></div>
-              </div>
-              <div className="vp-inv-foot">
-                <span className="vp-inv-stamp">Booked in 4m&nbsp;32s</span>
-                <Link to="/booking" className="vp-btn sm primary">Book this board <ArrowUpRight className="w-3 h-3" /></Link>
-              </div>
-            </div>
+          {/* Product proof: carousel of live available inventory */}
+          <div className="vp-hero-visual reveal">
+            {board && (
+              <article
+                className={`vp-hero-dossier${fading ? ' vp-fading' : ''}`}
+                aria-label={`Billboard ${idx + 1} of ${slides.length}: ${board.title}`}
+              >
+                <img
+                  src={board.imageUrl}
+                  alt={`${board.city} — ${board.title}`}
+                  loading="eager"
+                  referrerPolicy="no-referrer"
+                />
+                <span className="vp-live-dot"><i />Available now</span>
+                <div className="vp-hero-inv">
+                  <div className="vp-inv-top">
+                    <span className="vp-inv-loc"><MapPin className="w-3.5 h-3.5" /> {board.location} · {board.city}</span>
+                    <span className="vp-inv-avail">Available</span>
+                  </div>
+                  <div className="vp-inv-meta">
+                    <div><b>{board.format.split(' ')[0]}</b><small>{board.dimensions}</small></div>
+                    <div><b>{board.monthlyImpressions}</b><small>monthly reach</small></div>
+                    <div><b>${board.dailyRate}</b><small>per day</small></div>
+                  </div>
+                  <div className="vp-inv-foot">
+                    <nav className="vp-carousel-nav" aria-label="Browse available billboards">
+                      <button
+                        className="vp-carousel-nav__btn"
+                        onClick={() => go(-1)}
+                        aria-label="Previous billboard"
+                        disabled={slides.length <= 1}
+                      >‹</button>
+                      <span className="vp-carousel-nav__count" aria-live="polite">
+                        {String(idx + 1).padStart(2, '0')}&nbsp;/&nbsp;{String(slides.length).padStart(2, '0')}
+                      </span>
+                      <button
+                        className="vp-carousel-nav__btn"
+                        onClick={() => go(1)}
+                        aria-label="Next billboard"
+                        disabled={slides.length <= 1}
+                      >›</button>
+                    </nav>
+                    <Link to="/booking" className="vp-btn sm primary">Book this board <ArrowUpRight className="w-3 h-3" /></Link>
+                  </div>
+                </div>
+                <span className="vp-hero-dossier-index" aria-hidden="true">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+              </article>
+            )}
           </div>
         </div>
 
@@ -232,28 +361,36 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ─── STACKING SECTIONS ─── */}
+      <div className="vp-stack-container">
+
       {/* ─── PROBLEM ─── */}
-      <section className="vp-stage">
-        <div className="vp-wrap vp-split">
-          <div>
+      <section className="vp-stage vp-problem vp-stack" style={{'--stack-index': 1} as React.CSSProperties} aria-labelledby="problem-title">
+        <div className="vp-wrap vp-problem-layout">
+          <div className="vp-problem-copy">
             <p className="vp-eyebrow reveal">The problem</p>
-            <h2 className="reveal">Stop emailing 42 people to book one billboard.</h2>
+            <h2 className="reveal" id="problem-title">
+              Stop emailing <span>42 people</span> to book one billboard.
+            </h2>
             <p className="vp-lead reveal">
               The old workflow scatters discovery, pricing, proof, and booking across separate operators.
               It takes 18 days on average.
             </p>
-            <div className="vp-metrics reveal" style={{ marginTop: 32 }}>
-              <div className="vp-metric"><strong data-count="18" data-suffix=" days">18 days</strong><span>Average booking cycle</span></div>
-              <div className="vp-metric"><strong data-count="42" data-suffix="%">42%</strong><span>Inventory sits empty</span></div>
-              <div className="vp-metric"><strong data-count="6" data-suffix="+">6+</strong><span>Manual approval stages</span></div>
+            <div className="vp-metrics vp-problem-metrics reveal" aria-label="Problem metrics">
+              <div className="vp-metric vp-problem-metric"><strong data-count="18" data-suffix=" days">18 days</strong><span>Average booking cycle</span></div>
+              <div className="vp-metric vp-problem-metric"><strong data-count="42" data-suffix="%">42%</strong><span>Inventory sits empty</span></div>
+              <div className="vp-metric vp-problem-metric"><strong data-count="6" data-suffix="+">6+</strong><span>Manual approval stages</span></div>
             </div>
           </div>
-          <div className="vp-card-grid one reveal">
-            {PAIN_CARDS.map(({ Icon, title, desc }) => (
-              <article className="vp-line-card" key={title}>
-                <Icon />
-                <h3>{title}</h3>
-                <p>{desc}</p>
+          <div className="vp-problem-pains reveal">
+            {PAIN_CARDS.map(({ Icon, title, desc }, index) => (
+              <article className="vp-problem-pain" key={title}>
+                <span className="vp-problem-icon" aria-hidden="true"><Icon /></span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{desc}</p>
+                </div>
+                <span className="vp-problem-index" aria-hidden="true">0{index + 1}</span>
               </article>
             ))}
           </div>
@@ -261,16 +398,16 @@ export default function LandingPage() {
       </section>
 
       {/* ─── ROLES ─── */}
-      <section className="vp-stage" id="roles">
+      <section className="vp-stage vp-stack" id="roles" style={{'--stack-index': 2} as React.CSSProperties}>
         <div className="vp-wrap">
           <div className="vp-section-head vp-center">
             <p className="vp-eyebrow reveal">One platform. Four workspaces.</p>
             <h2 className="reveal">Pick the workspace that matches your role.</h2>
             <p className="vp-lead reveal" style={{ margin: '0 auto' }}>
-              Advertisers book. Vendors list. Admins operate. Investors review.
+              Buyers book. Publishers list. Admins operate. Investors review.
             </p>
           </div>
-          <div className="vp-role-grid reveal">
+          <div className="vp-role-floor reveal">
             {ROLE_CARDS.map(({ title, image, desc, cta, href, alt, tag }) => (
               <Link
                 to={href}
@@ -279,6 +416,10 @@ export default function LandingPage() {
                 style={{ '--image': `url('${image}')` } as React.CSSProperties}
                 aria-label={`${title} — ${alt}`}
               >
+                <span className="vp-role-corner vp-role-corner-tl" />
+                <span className="vp-role-corner vp-role-corner-tr" />
+                <span className="vp-role-corner vp-role-corner-bl" />
+                <span className="vp-role-corner vp-role-corner-br" />
                 <span className="vp-role-tag">{tag}</span>
                 <div className="vp-role-body">
                   <h3>{title}</h3>
@@ -294,7 +435,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── OPERATING MODEL ─── */}
-      <section className="vp-stage" id="gateway">
+      <section className="vp-stage vp-stack" id="gateway" style={{'--stack-index': 3} as React.CSSProperties}>
         <div className="vp-wrap">
           <div className="vp-section-head">
             <p className="vp-eyebrow reveal">How it works</p>
@@ -307,7 +448,7 @@ export default function LandingPage() {
             {OPERATING_STEPS.map(({ num, Icon, title, desc }) => (
               <article className="vp-system-module" key={num}>
                 <div className="vp-step-head">
-                  <span className="vp-step-icon"><Icon className="w-4 h-4" /></span>
+                  <span className="vp-step-icon"><Icon className="w-5 h-5" /></span>
                   <span className="vp-num">{num}</span>
                 </div>
                 <h3>{title}</h3>
@@ -317,6 +458,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+        <div className="vp-stack-shadow" aria-hidden="true" />
+      </div>
 
       {/* ─── CTA ─── */}
       <section className="vp-stage vp-center vp-cta" id="booking">

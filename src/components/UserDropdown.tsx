@@ -53,7 +53,7 @@ export default function UserDropdown({ currentUser, items }: UserDropdownProps) 
       >
         <span className="vp-user-dropdown-avatar">
           {currentUser.avatar ? (
-            <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            <img src={currentUser.avatar} alt={currentUser.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }} />
           ) : (
             initials
           )}

@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('advertiser', 'vendor', 'admin', 'investor');
+CREATE TYPE "UserRole" AS ENUM ('buyer', 'publisher', 'admin', 'investor');
 
 -- CreateEnum
 CREATE TYPE "BillboardStatus" AS ENUM ('Available', 'FullyBooked', 'Maintenance');

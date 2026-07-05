@@ -145,7 +145,7 @@ export const INVESTMENT_DECK: PitchSlide[] = [
       "15% commission on programmatic bookings across the marketplace.",
       "SaaS subscriptions: advanced planning, brand intelligence, and reporting.",
       "Managed campaigns for enterprise brands with programmatic creative updates.",
-      "Instant vendor payouts with early settlement options."
+      "Instant publisher payouts with early settlement options."
     ],
     graphicType: 'model'
   },
