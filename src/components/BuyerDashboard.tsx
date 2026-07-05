@@ -533,7 +533,7 @@ export default function AdvertiserDashboard({ billboards, bookings }: Advertiser
                             borderColor: 'rgba(255, 255, 255, 0.1)',
                             color: '#ffffff',
                             borderRadius: '12px',
-                            fontFamily: 'JetBrains Mono, sans-serif'
+                            fontFamily: "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace"
                           }}
                           formatter={(value: any) => [Number(value).toLocaleString(), 'Impressions']}
                         />

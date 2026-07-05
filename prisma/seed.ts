@@ -218,6 +218,26 @@ async function main() {
   console.log('  publisher   →  publisher@vantagepoint.com');
   console.log('  admin       →  admin@vantagepoint.com');
   console.log('  investor    →  investor@vantagepoint.com');
+
+  // ── Impression logs (last 30 days) ─────────────────────────────────────────
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    for (const b of billboards) {
+      const base = b.monthlyImpressions === '3.8M' ? 126000
+        : b.monthlyImpressions === '2.9M' ? 96000
+        : b.monthlyImpressions === '2.2M' ? 73000
+        : b.monthlyImpressions === '1.9M' ? 63000
+        : 56000;
+      const noise = Math.round(Math.sin(i * 0.6) * 12000 + Math.random() * 8000);
+      await prisma.impressionLog.create({
+        data: { billboardId: b.id, date, count: Math.max(base + noise, 10000) },
+      });
+    }
+  }
+  console.log('✅ Impression logs seeded (30 days × 5 billboards)');
 }
 
 main()

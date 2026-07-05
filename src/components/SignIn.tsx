@@ -32,18 +32,6 @@ export default function SignIn({
 
   useEffect(() => cancelPendingAuth, [cancelPendingAuth]);
 
-  const getRegisteredUsers = () => {
-    const raw = localStorage.getItem('vantage_users');
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  };
-
   const handleSignInSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
@@ -62,22 +50,7 @@ export default function SignIn({
       }
       onSuccess(result.user);
     } catch {
-      const normalizedEmail = email.toLowerCase();
-      const users = getRegisteredUsers();
-      const userMatch = users.find((user: any) =>
-        user.email.toLowerCase() === normalizedEmail && user.password === password);
-      const demoAccounts: Record<string, Parameters<typeof onSuccess>[0]> = {
-        'buyer@vantagepoint.com': { id: 'usr_demo_adv', email: 'buyer@vantagepoint.com', name: 'Vanguard Brands Corp', role: 'buyer', company: 'Vanguard Media Group' },
-        'publisher@vantagepoint.com': { id: 'usr_demo_pub', email: 'publisher@vantagepoint.com', name: 'Apex OOH Screens', role: 'publisher', company: 'Apex Media Group' },
-        'investor@vantagepoint.com': { id: 'usr_demo_inv', email: 'investor@vantagepoint.com', name: 'Kalu Capital Partners', role: 'investor', company: 'Kalu Capital LLP' },
-      };
-      if (!mfaToken && userMatch) {
-        onSuccess(userMatch);
-      } else if (!mfaToken && demoAccounts[normalizedEmail] && password === 'password') {
-        onSuccess(demoAccounts[normalizedEmail]);
-      } else {
-        setError(mfaToken ? 'Invalid or expired authentication code.' : 'Invalid email or password.');
-      }
+      setError(mfaToken ? 'Invalid or expired authentication code.' : 'Invalid email or password.');
     } finally {
       setIsLoading(false);
     }

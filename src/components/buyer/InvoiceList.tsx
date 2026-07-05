@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Booking } from '../../types';
-import { sessionStore } from '../../lib/apiClient';
 import { invoicesApi, type Invoice } from '../../lib/invoicesApi';
+import { paymentsApi } from '../../lib/paymentsApi';
 import type { BillingCurrency } from '../../types/buyerSettings';
 import { convertUsd } from '../../lib/money';
 
@@ -12,9 +12,9 @@ interface InvoiceListProps {
 
 export default function InvoiceList({ bookings, currency }: InvoiceListProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!sessionStore.getToken()) return;
     invoicesApi.list().then(setInvoices).catch(() => undefined);
   }, []);
 
@@ -28,6 +28,16 @@ export default function InvoiceList({ bookings, currency }: InvoiceListProps) {
     dueAt: booking.endDate,
     booking: { campaignName: booking.campaignName, billboardId: booking.billboardId },
   }));
+
+  const payInvoice = async (bookingId: string) => {
+    setPayingId(bookingId);
+    try {
+      const { authorization_url } = await paymentsApi.initialize(bookingId);
+      window.location.href = authorization_url;
+    } catch {
+      setPayingId(null);
+    }
+  };
 
   if (rows.length === 0) {
     return <div className="vp-empty">Invoices appear after the first booking request is created.</div>;
@@ -46,6 +56,11 @@ export default function InvoiceList({ bookings, currency }: InvoiceListProps) {
             currency: invoice.currency,
           }).format(invoice.totalMinor / 100)}</strong>
           <span className={`vp-status-pill ${invoice.status === 'PAID' ? 'ok' : 'warn'}`}>{invoice.status}</span>
+          {invoice.status !== 'PAID' && (
+            <button className="vp-btn sm primary" onClick={() => payInvoice(invoice.id)} disabled={payingId === invoice.id}>
+              {payingId === invoice.id ? 'Redirecting…' : 'Pay via Paystack'}
+            </button>
+          )}
         </div>
       ))}
     </div>

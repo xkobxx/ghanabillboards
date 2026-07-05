@@ -26,7 +26,7 @@ const INITIAL_LOGS: GatewayLog[] = [
 ];
 
 export default function AdminPage() {
-  const { currentUser, setAuthMode, allBillboards, myBookings, updateBookingStatus, signOut, setCurrentUser, changePassword } = useApp();
+  const { currentUser, setAuthMode, allBillboards, myBookings, updateBookingStatus, signOut, setCurrentUser } = useApp();
   const [activeView, setActiveView] = useState<AdminView>('overview');
   const [logs, setLogs] = useState<GatewayLog[]>(INITIAL_LOGS);
   const [selectedLog, setSelectedLog] = useState<GatewayLog | null>(INITIAL_LOGS[0]);
@@ -405,7 +405,7 @@ export default function AdminPage() {
 
               <div style={{ marginTop: 16 }}>
                 {showPasswordChange ? (
-                  <PasswordChange onChangePassword={changePassword} onClose={() => setShowPasswordChange(false)} />
+                  <PasswordChange onClose={() => setShowPasswordChange(false)} />
                 ) : (
                   <button className="vp-btn sm" type="button" onClick={() => setShowPasswordChange(true)}>Change Password</button>
                 )}

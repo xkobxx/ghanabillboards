@@ -14,6 +14,7 @@ import AvatarUpload from '../components/AvatarUpload';
 import PasswordChange from '../components/PasswordChange';
 import ProfileCompleteness from '../components/ProfileCompleteness';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { authApi } from '../lib/authApi';
 import { validateProfile, type ProfileErrors } from '../lib/validation';
 
 type PublisherView = 'overview' | 'inventory' | 'requests' | 'rates' | 'revenue' | 'profile' | 'settings';
@@ -22,7 +23,6 @@ export default function PublisherPage() {
   const {
     currentUser, setAuthMode, allBillboards, setAllBillboards, myBookings, setCurrentUser,
     updateBookingStatus, updateBillboardStatus, createBillboard, deleteBillboard, signOut,
-    changePassword, deleteAccount,
   } = useApp();
   const [activeView, setActiveView] = useState<PublisherView>('overview');
   const [profileDraft, setProfileDraft] = useState({ name: '', email: '', company: '', phone: '', bio: '', location: '', website: '' });
@@ -33,6 +33,8 @@ export default function PublisherPage() {
   const [editDraft, setEditDraft] = useState<Billboard | null>(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
   type InventoryFormat = Billboard['format'];
   const FORMATS: InventoryFormat[] = ['Digital LED', 'Static Mega', 'Spectacular Bridge', 'Portrait Pillar'];
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -585,7 +587,7 @@ export default function PublisherPage() {
                 {!showPasswordChange ? (
                   <button className="vp-btn sm" type="button" onClick={() => setShowPasswordChange(true)}>Change password</button>
                 ) : (
-                  <PasswordChange onChangePassword={changePassword} onClose={() => setShowPasswordChange(false)} />
+                  <PasswordChange onClose={() => setShowPasswordChange(false)} />
                 )}
                 <hr style={{ border: 'none', borderTop: '1px solid rgba(245,240,231,.08)', margin: '16px 0' }} />
                 <div className="vp-dash-item">
@@ -623,13 +625,26 @@ export default function PublisherPage() {
                   <p className="text-body-sm" style={{ color: '#ef4444', fontWeight: 700, marginBottom: 4 }}>Delete account?</p>
                   <p className="text-body-xs" style={{ color: 'rgba(245,240,231,.52)', lineHeight: 1.5 }}>All your inventory, bookings, and revenue records will be permanently removed.</p>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                  <input type="password" className="vp-input-inline" placeholder="Confirm password"
+                    value={deletePassword} onChange={e => { setDeletePassword(e.target.value); setDeleteError(''); }}
+                    style={{ maxWidth: 180, background: 'rgba(239,68,68,.08)', borderColor: 'rgba(239,68,68,.3)' }} />
                   <button className="vp-btn sm primary" type="button" style={{ background: '#ef4444', borderColor: '#ef4444', fontSize: 11 }}
-                    onClick={() => { deleteAccount(); window.location.href = '/'; }}>Yes, delete permanently</button>
-                  <button className="vp-btn sm" type="button" style={{ fontSize: 11 }} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                    onClick={async () => {
+                      try {
+                        await authApi.deleteAccount(deletePassword);
+                        signOut();
+                        window.location.href = '/';
+                      } catch (reason) {
+                        setDeleteError(reason instanceof Error ? reason.message : 'Unable to delete account');
+                      }
+                    }}>Delete permanently</button>
+                  <button className="vp-btn sm" type="button" style={{ fontSize: 11 }}
+                    onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteError(''); }}>Cancel</button>
                 </div>
               </div>
             )}
+            {deleteError && <p className="text-body-xs" style={{ color: '#ef4444', margin: '8px 0 0', fontFamily: 'monospace' }}>{deleteError}</p>}
           </div>
         </section>
 

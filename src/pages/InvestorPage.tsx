@@ -6,6 +6,7 @@ import DashboardShell from '../components/DashboardShell';
 import AvatarUpload from '../components/AvatarUpload';
 import PasswordChange from '../components/PasswordChange';
 import ProfileCompleteness from '../components/ProfileCompleteness';
+import { authApi } from '../lib/authApi';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { validateProfile, type ProfileErrors } from '../lib/validation';
 
@@ -30,7 +31,7 @@ const DECK_SLIDES = [
 ];
 
 export default function InvestorPage() {
-  const { currentUser, setAuthMode, signOut, setCurrentUser, changePassword, deleteAccount } = useApp();
+  const { currentUser, setAuthMode, signOut, setCurrentUser } = useApp();
   const [activeView, setActiveView] = useState<InvestorView>('overview');
   const [slideIndex, setSlideIndex] = useState(0);
   const [profileDraft, setProfileDraft] = useState({ name: '', email: '', company: '', phone: '', bio: '', location: '', website: '' });
@@ -39,6 +40,8 @@ export default function InvestorPage() {
   const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     if (!currentUser) return;
@@ -253,7 +256,7 @@ export default function InvestorPage() {
                       <button className="vp-btn sm" type="button"
                         onClick={() => setShowPasswordChange(true)}>Change password</button>
                     ) : (
-                      <PasswordChange onChangePassword={changePassword} onClose={() => setShowPasswordChange(false)} />
+                      <PasswordChange onClose={() => setShowPasswordChange(false)} />
                     )}
                   </div>
                 </article>
@@ -282,10 +285,22 @@ export default function InvestorPage() {
                         <p className="text-body-xs" style={{ color: 'rgba(245,240,231,.52)', marginBottom: 12, lineHeight: 1.5 }}>
                           All your investor profile data and access will be permanently removed.
                         </p>
+                        <input type="password" className="vp-input-inline" placeholder="Confirm password"
+                          value={deletePassword} onChange={e => { setDeletePassword(e.target.value); setDeleteError(''); }}
+                          style={{ display: 'block', width: '100%', marginBottom: 8, background: 'rgba(239,68,68,.08)', borderColor: 'rgba(239,68,68,.3)' }} />
+                        {deleteError && <p className="text-body-xs" style={{ color: '#ef4444', margin: '0 0 8px', fontFamily: 'monospace' }}>{deleteError}</p>}
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="vp-btn sm primary" type="button" style={{ background: '#ef4444', borderColor: '#ef4444', fontSize: 11 }}
-                            onClick={() => { deleteAccount(); window.location.href = '/'; }}>Yes, delete permanently</button>
-                          <button className="vp-btn sm" type="button" style={{ fontSize: 11 }} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                            onClick={async () => {
+                              try {
+                                await authApi.deleteAccount(deletePassword);
+                                signOut();
+                                window.location.href = '/';
+                              } catch (reason) {
+                                setDeleteError(reason instanceof Error ? reason.message : 'Unable to delete account');
+                              }
+                            }}>Delete permanently</button>
+                          <button className="vp-btn sm" type="button" style={{ fontSize: 11 }} onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteError(''); }}>Cancel</button>
                         </div>
                       </div>
                     )}

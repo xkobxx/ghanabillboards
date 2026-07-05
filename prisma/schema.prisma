@@ -276,3 +276,30 @@ model GatewayLog {
   payload   String?
   createdAt DateTime   @default(now())
 }
+
+model ImpressionLog {
+  id          String   @id @default(cuid())
+  billboardId String
+  date        DateTime
+  count       Int
+  campaignId  String?
+  createdAt   DateTime @default(now())
+
+  @@index([billboardId, date])
+  @@index([date])
+}
+
+model PaystackTransaction {
+  id            String   @id @default(cuid())
+  bookingId     String   @unique
+  reference     String   @unique
+  amount        Int
+  currency      BillingCurrency @default(USD)
+  status        String   @default("pending")
+  authorizationUrl String?
+  paidAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([reference])
+}

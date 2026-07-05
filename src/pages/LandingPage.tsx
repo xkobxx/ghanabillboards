@@ -13,6 +13,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CITIES = ['Accra', 'Lagos', 'Nairobi', 'Johannesburg', 'Cape Town', 'Kumasi', 'Abuja', 'Mombasa'];
 
+const GEO_PINS = [
+  { city: 'Accra', coord: '5.56°N  0.20°W', style: { top: '13%', left: '3%' } },
+  { city: 'Lagos', coord: '6.52°N  3.37°E', style: { top: '26%', right: '3%' } },
+  { city: 'Nairobi', coord: '1.29°S  36.82°E', style: { top: '62%', right: '3%' } },
+  { city: 'Johannesburg', coord: '26.20°S  28.02°E', style: { top: '72%', left: '3%' } },
+  { city: 'Cape Town', coord: '33.92°S  18.42°E', style: { bottom: '14%', right: '4%' } },
+] as const;
+
 const ROLE_CARDS = [
   {
     title: 'Book inventory',
@@ -125,25 +133,19 @@ export default function LandingPage() {
       });
 
       // ── Page load cinematic entrance ──
-      gsap.set('.vp-hero .vp-eyebrow', { opacity: 0, y: 40 });
       gsap.set('.vp-hero h1', { opacity: 0, y: 48 });
       gsap.set('.vp-hero .vp-lead', { opacity: 0, y: 24 });
       gsap.set('.vp-hero .vp-pill-row', { opacity: 0, y: 20 });
-      gsap.set('.vp-hero .vp-hero-metrics', { opacity: 0, y: 24 });
-      gsap.set('.vp-hero .vp-hero-visual', { opacity: 0, scale: 1.05 });
       gsap.set('.vp-hero .vp-marquee', { opacity: 0, y: 0 });
 
       if (!reduce) {
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        tl.to('.vp-hero .vp-eyebrow', { opacity: 1, y: 0, duration: 0.7 }, 0.35)
-          .to('.vp-hero h1', { opacity: 1, y: 0, duration: 0.9 }, 0.55)
-          .to('.vp-hero .vp-lead', { opacity: 1, y: 0, duration: 0.7 }, 1.15)
-          .to('.vp-hero .vp-pill-row', { opacity: 1, y: 0, duration: 0.6 }, 1.45)
-          .to('.vp-hero .vp-hero-metrics', { opacity: 1, y: 0, duration: 0.65 }, 1.7)
-          .to('.vp-hero .vp-hero-visual', { opacity: 1, scale: 1, duration: 1.1 }, 2.0)
-          .to('.vp-hero .vp-marquee', { opacity: 1, duration: 0.5 }, 2.3);
+        tl.to('.vp-hero h1', { opacity: 1, y: 0, duration: 0.9 }, 0.3)
+          .to('.vp-hero .vp-lead', { opacity: 1, y: 0, duration: 0.7 }, 0.85)
+          .to('.vp-hero .vp-pill-row', { opacity: 1, y: 0, duration: 0.6 }, 1.15)
+          .to('.vp-hero .vp-marquee', { opacity: 1, duration: 0.5 }, 1.55);
       } else {
-        gsap.set('.vp-hero .vp-eyebrow, .vp-hero h1, .vp-hero .vp-lead, .vp-hero .vp-pill-row, .vp-hero .vp-hero-metrics, .vp-hero .vp-hero-visual, .vp-hero .vp-marquee', { opacity: 1, y: 0, scale: 1 });
+        gsap.set('.vp-hero h1, .vp-hero .vp-lead, .vp-hero .vp-pill-row, .vp-hero .vp-marquee', { opacity: 1, y: 0 });
       }
 
       // ── Stack transitions ── scrub previous card up as next covers it
@@ -234,20 +236,6 @@ export default function LandingPage() {
         cleanups.push(() => card.removeEventListener('mousemove', move));
       });
 
-      // Subtle hero parallax — dossier shifts on scroll
-      const dossier = root.querySelector<HTMLElement>('.vp-hero-dossier');
-      const heroStage = root.querySelector<HTMLElement>('.vp-hero');
-      if (dossier && heroStage) {
-        const onParallax = () => {
-          const rect = heroStage.getBoundingClientRect();
-          if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-          const pct = -rect.top / (rect.height + window.innerHeight);
-          const offset = 24 * Math.max(-0.5, Math.min(0.5, pct));
-          dossier.style.transform = `translateZ(0) translateY(${offset}px)`;
-        };
-        window.addEventListener('scroll', onParallax, { passive: true });
-        cleanups.push(() => window.removeEventListener('scroll', onParallax));
-      }
     }
 
     return () => { ctx.revert(); cleanups.forEach((c) => c()); };
@@ -276,78 +264,20 @@ export default function LandingPage() {
       <div className="vp-grid-bg" aria-hidden="true" />
 
       {/* ─── HERO ─── */}
-      <section className="vp-stage vp-hero" aria-labelledby="hero-title" id="home">
-        <div className="vp-wrap vp-hero-split">
+      <section className="vp-stage vp-hero vp-stack" aria-labelledby="hero-title" id="home" style={{'--stack-index': 0} as React.CSSProperties}>
+        <div className="vp-wrap vp-hero-centered">
           <div className="vp-hero-copy">
-            <p className="vp-eyebrow reveal">Africa's out-of-home marketplace</p>
+            <p className="vp-eyebrow">Africa's out-of-home marketplace</p>
             <h1 className="reveal" id="hero-title">
-              Find and book billboards across Africa in under&nbsp;5&nbsp;minutes.
+              Find and book billboards across Africa in under 5 minutes.
             </h1>
             <p className="vp-lead reveal">
-              The first unified marketplace for outdoor advertising in Sub-Saharan Africa.
-              One search, one price, one booking.
+              The first unified marketplace for outdoor advertising in Sub-Saharan Africa. One search, one price, one booking — no email chains, no PDF rate cards.
             </p>
             <div className="vp-pill-row reveal">
               <Link to="/booking" className="vp-btn primary">Start booking <ArrowUpRight className="w-3.5 h-3.5" /></Link>
               <button onClick={() => setAuthMode('register')} className="vp-btn">Create account</button>
             </div>
-            <div className="vp-metrics vp-hero-metrics reveal" aria-label="Platform metrics">
-              <Link to="/booking" className="vp-metric vp-metric-accent"><strong data-count="4.5" data-suffix="min">4.5min</strong><span>Avg. time to book</span></Link>
-              <div className="vp-metric"><strong data-count="5">5</strong><span>Cities live today</span></div>
-              <div className="vp-metric"><strong data-count="42" data-suffix="+">42+</strong><span>Publishers consolidated</span></div>
-            </div>
-          </div>
-
-          {/* Product proof: carousel of live available inventory */}
-          <div className="vp-hero-visual reveal">
-            {board && (
-              <article
-                className={`vp-hero-dossier${fading ? ' vp-fading' : ''}`}
-                aria-label={`Billboard ${idx + 1} of ${slides.length}: ${board.title}`}
-              >
-                <img
-                  src={board.imageUrl}
-                  alt={`${board.city} — ${board.title}`}
-                  loading="eager"
-                  referrerPolicy="no-referrer"
-                />
-                <span className="vp-live-dot"><i />Available now</span>
-                <div className="vp-hero-inv">
-                  <div className="vp-inv-top">
-                    <span className="vp-inv-loc"><MapPin className="w-3.5 h-3.5" /> {board.location} · {board.city}</span>
-                    <span className="vp-inv-avail">Available</span>
-                  </div>
-                  <div className="vp-inv-meta">
-                    <div><b>{board.format.split(' ')[0]}</b><small>{board.dimensions}</small></div>
-                    <div><b>{board.monthlyImpressions}</b><small>monthly reach</small></div>
-                    <div><b>${board.dailyRate}</b><small>per day</small></div>
-                  </div>
-                  <div className="vp-inv-foot">
-                    <nav className="vp-carousel-nav" aria-label="Browse available billboards">
-                      <button
-                        className="vp-carousel-nav__btn"
-                        onClick={() => go(-1)}
-                        aria-label="Previous billboard"
-                        disabled={slides.length <= 1}
-                      >‹</button>
-                      <span className="vp-carousel-nav__count" aria-live="polite">
-                        {String(idx + 1).padStart(2, '0')}&nbsp;/&nbsp;{String(slides.length).padStart(2, '0')}
-                      </span>
-                      <button
-                        className="vp-carousel-nav__btn"
-                        onClick={() => go(1)}
-                        aria-label="Next billboard"
-                        disabled={slides.length <= 1}
-                      >›</button>
-                    </nav>
-                    <Link to="/booking" className="vp-btn sm primary">Book this board <ArrowUpRight className="w-3 h-3" /></Link>
-                  </div>
-                </div>
-                <span className="vp-hero-dossier-index" aria-hidden="true">
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-              </article>
-            )}
           </div>
         </div>
 
@@ -364,8 +294,62 @@ export default function LandingPage() {
       {/* ─── STACKING SECTIONS ─── */}
       <div className="vp-stack-container">
 
+      {/* ─── BILLBOARD SHOWCASE ─── */}
+      <section className="vp-stage vp-showcase vp-stack" aria-label="Live billboard inventory" style={{'--stack-index': 1} as React.CSSProperties}>
+        <div className="vp-wrap">
+          {board && (
+            <article
+              className={`vp-hero-dossier reveal${fading ? ' vp-fading' : ''}`}
+              aria-label={`Billboard ${idx + 1} of ${slides.length}: ${board.title}`}
+            >
+              <img
+                src={board.imageUrl}
+                alt={`${board.city} — ${board.title}`}
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
+              <span className="vp-live-dot"><i />Available now</span>
+              <div className="vp-hero-inv">
+                <div className="vp-inv-top">
+                  <span className="vp-inv-loc"><MapPin className="w-3.5 h-3.5" /> {board.location} · {board.city}</span>
+                  <span className="vp-inv-avail">Available</span>
+                </div>
+                <div className="vp-inv-meta">
+                  <div><b>{board.format.split(' ')[0]}</b><small>{board.dimensions}</small></div>
+                  <div><b>{board.monthlyImpressions}</b><small>monthly reach</small></div>
+                  <div><b>${board.dailyRate}</b><small>per day</small></div>
+                </div>
+                <div className="vp-inv-foot">
+                  <nav className="vp-carousel-nav" aria-label="Browse available billboards">
+                    <button
+                      className="vp-carousel-nav__btn"
+                      onClick={() => go(-1)}
+                      aria-label="Previous billboard"
+                      disabled={slides.length <= 1}
+                    >‹</button>
+                    <span className="vp-carousel-nav__count" aria-live="polite">
+                      {String(idx + 1).padStart(2, '0')}&nbsp;/&nbsp;{String(slides.length).padStart(2, '0')}
+                    </span>
+                    <button
+                      className="vp-carousel-nav__btn"
+                      onClick={() => go(1)}
+                      aria-label="Next billboard"
+                      disabled={slides.length <= 1}
+                    >›</button>
+                  </nav>
+                  <Link to="/booking" className="vp-btn sm primary">Book this board <ArrowUpRight className="w-3 h-3" /></Link>
+                </div>
+              </div>
+              <span className="vp-hero-dossier-index" aria-hidden="true">
+                {String(idx + 1).padStart(2, '0')}
+              </span>
+            </article>
+          )}
+        </div>
+      </section>
+
       {/* ─── PROBLEM ─── */}
-      <section className="vp-stage vp-problem vp-stack" style={{'--stack-index': 1} as React.CSSProperties} aria-labelledby="problem-title">
+      <section className="vp-stage vp-problem vp-stack" style={{'--stack-index': 2} as React.CSSProperties} aria-labelledby="problem-title">
         <div className="vp-wrap vp-problem-layout">
           <div className="vp-problem-copy">
             <p className="vp-eyebrow reveal">The problem</p>
@@ -398,7 +382,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── ROLES ─── */}
-      <section className="vp-stage vp-stack" id="roles" style={{'--stack-index': 2} as React.CSSProperties}>
+      <section className="vp-stage vp-stack" id="roles" style={{'--stack-index': 3} as React.CSSProperties}>
         <div className="vp-wrap">
           <div className="vp-section-head vp-center">
             <p className="vp-eyebrow reveal">One platform. Four workspaces.</p>
@@ -435,7 +419,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── OPERATING MODEL ─── */}
-      <section className="vp-stage vp-stack" id="gateway" style={{'--stack-index': 3} as React.CSSProperties}>
+      <section className="vp-stage vp-stack" id="gateway" style={{'--stack-index': 4} as React.CSSProperties}>
         <div className="vp-wrap">
           <div className="vp-section-head">
             <p className="vp-eyebrow reveal">How it works</p>
@@ -459,11 +443,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-        <div className="vp-stack-shadow" aria-hidden="true" />
-      </div>
-
       {/* ─── CTA ─── */}
-      <section className="vp-stage vp-center vp-cta" id="booking">
+      <section className="vp-stage vp-center vp-cta vp-stack" id="booking" style={{'--stack-index': 5} as React.CSSProperties}>
         <div className="vp-wrap">
           <p className="vp-eyebrow reveal">Get started</p>
           <h2 className="reveal">Ready to book? Pick your workspace.</h2>
@@ -477,6 +458,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+        <div className="vp-stack-shadow" aria-hidden="true" />
+      </div>
     </div>
   );
 }

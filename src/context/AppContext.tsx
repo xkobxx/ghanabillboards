@@ -26,8 +26,6 @@ interface AppContextValue {
   createBillboard: (billboard: Billboard) => void;
   deleteBillboard: (id: string) => void;
   signOut: () => void;
-  changePassword: (currentPassword: string, newPassword: string) => boolean;
-  deleteAccount: () => void;
   notifications: AppNotification[];
   addNotification: (n: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => void;
   markAllNotificationsRead: () => void;
@@ -131,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    if (!currentUser || !sessionStore.getToken()) return;
+    if (!currentUser) return;
     notificationsApi.list().then((items) => {
       setNotifications(items.map((item) => ({
         id: item.id,
@@ -160,13 +158,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const markAllNotificationsRead = useCallback(() => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    if (sessionStore.getToken()) notificationsApi.markAllRead().catch(() => undefined);
+    notificationsApi.markAllRead().catch(() => undefined);
   }, []);
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
     localStorage.removeItem('vantage_notifications');
-    if (sessionStore.getToken()) notificationsApi.clear().catch(() => undefined);
+    notificationsApi.clear().catch(() => undefined);
   }, []);
 
   // Persist bookings
@@ -280,25 +278,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sessionStore.clear();
   }, []);
 
-  // ponytail: global lock for all password ops, per-account locks if throughput matters
-  const changePassword = useCallback((currentPassword: string, newPassword: string): boolean => {
-    const users: { email: string; password: string }[] = JSON.parse(localStorage.getItem('vantage_users') || '[]');
-    const user = users.find(u => u.email === currentUser?.email);
-    if (!user || user.password !== currentPassword) return false;
-    user.password = newPassword;
-    localStorage.setItem('vantage_users', JSON.stringify(users));
-    return true;
-  }, [currentUser]);
-
-  const deleteAccount = useCallback(() => {
-    if (!currentUser) return;
-    const users = JSON.parse(localStorage.getItem('vantage_users') || '[]');
-    const filtered = users.filter((u: { email: string }) => u.email !== currentUser.email);
-    localStorage.setItem('vantage_users', JSON.stringify(filtered));
-    localStorage.removeItem('vantage_current_user');
-    setCurrentUser(null);
-  }, [currentUser]);
-
   // Sync extended user fields to localStorage whenever currentUser changes
   useEffect(() => {
     if (currentUser) {
@@ -327,8 +306,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createBillboard,
       deleteBillboard,
       signOut,
-      changePassword,
-      deleteAccount,
+
       notifications,
       addNotification,
       markAllNotificationsRead,

@@ -19,7 +19,8 @@ import InvoiceList from '../components/buyer/InvoiceList';
 import { useBuyerSettings } from '../hooks/useBuyerSettings';
 import { formatUsdInCurrency } from '../lib/money';
 import { approvalsApi } from '../lib/approvalsApi';
-import { sessionStore } from '../lib/apiClient';
+import { authApi } from '../lib/authApi';
+import { analyticsApi } from '../lib/analyticsApi';
 import { validateProfile, type ProfileErrors } from '../lib/validation';
 
 type BuyerView =
@@ -34,7 +35,7 @@ type BuyerView =
   | 'settings';
 
 export default function BuyerPage() {
-  const { currentUser, setAuthMode, allBillboards, myBookings, signOut, setCurrentUser, updateBookingStatus, setMyBookings, setSelectedBillboard, changePassword, deleteAccount } = useApp();
+  const { currentUser, setAuthMode, allBillboards, myBookings, signOut, setCurrentUser, updateBookingStatus, setMyBookings, setSelectedBillboard } = useApp();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<BuyerView>('overview');
   const [profileDraft, setProfileDraft] = useState({ name: '', email: '', company: '', phone: '', bio: '', location: '', website: '' });
@@ -52,12 +53,19 @@ export default function BuyerPage() {
   const [showLockPicker, setShowLockPicker] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [analyticsSummary, setAnalyticsSummary] = useState({ runRate: 0, total: 0, average: 0, peak: 0 });
 
   useEffect(() => {
     if (!currentUser) return;
     setProfileDraft({ name: currentUser.name, email: currentUser.email, company: currentUser.company || '', phone: currentUser.phone || '', bio: currentUser.bio || '', location: currentUser.location || '', website: currentUser.website || '' });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    analyticsApi.impressions().then(d => setAnalyticsSummary(d.summary)).catch(() => undefined);
+  }, []);
 
   /* ── Guard ── */
   if (!currentUser) {
@@ -89,14 +97,26 @@ export default function BuyerPage() {
     );
   }
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
     const errs = validateProfile(profileDraft.name, profileDraft.email, profileDraft.phone, profileDraft.website);
     setProfileErrors(errs);
     if (errs.name || errs.email || errs.phone || errs.website) return;
-    setCurrentUser({ ...currentUser, name: profileDraft.name, email: profileDraft.email, company: profileDraft.company || undefined, phone: profileDraft.phone || undefined, bio: profileDraft.bio || undefined, location: profileDraft.location || undefined, website: profileDraft.website || undefined });
-    setProfileSaved(true);
-    setProfileErrors({});
-    setTimeout(() => setProfileSaved(false), 2000);
+    try {
+      const updated = await authApi.updateProfile({
+        name: profileDraft.name,
+        company: profileDraft.company || undefined,
+        phone: profileDraft.phone || undefined,
+        bio: profileDraft.bio || undefined,
+        location: profileDraft.location || undefined,
+        website: profileDraft.website || undefined,
+      });
+      setCurrentUser({ ...currentUser, ...updated });
+      setProfileSaved(true);
+      setProfileErrors({});
+      setTimeout(() => setProfileSaved(false), 2000);
+    } catch {
+      setProfileErrors({ name: 'Unable to save profile' });
+    }
   };
 
   /* ── Derived data ── */
@@ -153,8 +173,8 @@ export default function BuyerPage() {
               <span>Campaign records</span>
             </div>
             <div className="vp-stat-card">
-              <strong>4.5m</strong>
-              <span>Booking target</span>
+              <strong>{analyticsSummary.runRate.toLocaleString()}</strong>
+              <span>Current run rate</span>
             </div>
           </div>
           <div className="vp-panel-col-grid three">
@@ -343,7 +363,7 @@ export default function BuyerPage() {
                               className="vp-btn sm primary"
                               type="button"
                               onClick={async () => {
-                                if (sessionStore.getToken()) await approvalsApi.decide(b.id, 'APPROVE');
+                                await approvalsApi.decide(b.id, 'APPROVE');
                                 updateBookingStatus(b.id, 'Pending Approved');
                               }}
                             >
@@ -353,7 +373,7 @@ export default function BuyerPage() {
                               className="vp-btn sm danger"
                               type="button"
                               onClick={async () => {
-                                if (sessionStore.getToken()) await approvalsApi.decide(b.id, 'REJECT');
+                                await approvalsApi.decide(b.id, 'REJECT');
                                 updateBookingStatus(b.id, 'Rejected');
                               }}
                             >
@@ -726,7 +746,20 @@ export default function BuyerPage() {
                         <MailCheck size={13} style={{ color: '#ffc107' }} />
                         <span className="text-body-xs" style={{ color: '#ffc107' }}>Email unverified</span>
                       </div>
-                      <button type="button" className="vp-btn sm" style={{ width: '100%' }} onClick={() => setCurrentUser({ ...currentUser, emailVerified: true })}>Verify email</button>
+                      <button type="button" className="vp-btn sm" style={{ width: '100%' }} onClick={async () => {
+                        try {
+                          const result = await authApi.sendVerificationEmail();
+                          if ('token' in result) {
+                            await authApi.confirmEmail(result.token);
+                            setCurrentUser(u => u ? { ...u, emailVerified: true } : null);
+                          } else {
+                            setProfileSaved(true);
+                            setTimeout(() => setProfileSaved(false), 2000);
+                          }
+                        } catch {
+                          setProfileErrors({ email: 'Unable to send verification email' });
+                        }
+                      }}>Verify email</button>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -769,7 +802,7 @@ export default function BuyerPage() {
                 {!showPasswordChange ? (
                   <button className="vp-btn sm" type="button" onClick={() => setShowPasswordChange(true)}>Change password</button>
                 ) : (
-                  <PasswordChange onChangePassword={changePassword} onClose={() => setShowPasswordChange(false)} />
+                  <PasswordChange onClose={() => setShowPasswordChange(false)} />
                 )}
                 <hr style={{ border: 'none', borderTop: '1px solid rgba(245,240,231,.08)', margin: '16px 0' }} />
                 <div className="vp-dash-item">
@@ -787,30 +820,37 @@ export default function BuyerPage() {
 
           {/* Danger zone */}
           <div className="vp-dash-panel" style={{ marginTop: 12, background: 'rgba(239,68,68,.02)', borderColor: 'rgba(239,68,68,.14)' }}>
-            {!showDeleteConfirm ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <div>
-                  <p className="text-body-sm" style={{ fontWeight: 600, marginBottom: 2 }}>Delete account</p>
-                  <p className="text-body-xs" style={{ color: 'rgba(245,240,231,.45)' }}>Permanently removes all bookings, campaign history, and settings.</p>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+              <div>
+                <p className="text-body-sm" style={{ fontWeight: 600, marginBottom: 2 }}>Delete account</p>
+                <p className="text-body-xs" style={{ color: 'rgba(245,240,231,.45)' }}>Permanently removes all bookings, campaign history, and settings.</p>
+              </div>
+              {!showDeleteConfirm ? (
                 <button className="vp-btn sm" type="button" style={{ flexShrink: 0, color: 'rgba(245,240,231,.52)', borderColor: 'rgba(245,240,231,.12)' }}
                   onClick={() => setShowDeleteConfirm(true)}>
                   <ShieldAlert size={14} /> Delete my account
                 </button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <div>
-                  <p className="text-body-sm" style={{ color: '#ef4444', fontWeight: 700, marginBottom: 4 }}>Delete account?</p>
-                  <p className="text-body-xs" style={{ color: 'rgba(245,240,231,.52)', lineHeight: 1.5 }}>All your data including bookings, campaign history, and settings will be permanently removed.</p>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+                  <input type="password" className="vp-input-inline" placeholder="Confirm password"
+                    value={deletePassword} onChange={e => { setDeletePassword(e.target.value); setDeleteError(''); }}
+                    style={{ maxWidth: 180, background: 'rgba(239,68,68,.08)', borderColor: 'rgba(239,68,68,.3)' }} />
                   <button className="vp-btn sm primary" type="button" style={{ background: '#ef4444', borderColor: '#ef4444', fontSize: 11 }}
-                    onClick={() => { deleteAccount(); window.location.href = '/'; }}>Yes, delete permanently</button>
-                  <button className="vp-btn sm" type="button" style={{ fontSize: 11 }} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                    onClick={async () => {
+                      try {
+                        await authApi.deleteAccount(deletePassword);
+                        signOut();
+                        window.location.href = '/';
+                      } catch (reason) {
+                        setDeleteError(reason instanceof Error ? reason.message : 'Unable to delete account');
+                      }
+                    }}>Delete permanently</button>
+                  <button className="vp-btn sm" type="button" style={{ fontSize: 11 }}
+                    onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); setDeleteError(''); }}>Cancel</button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+            {deleteError && <p className="text-body-xs" style={{ color: '#ef4444', margin: '8px 0 0', fontFamily: 'monospace' }}>{deleteError}</p>}
           </div>
         </section>
 
@@ -820,28 +860,14 @@ export default function BuyerPage() {
             <p className="vp-eyebrow">Buyer settings</p>
             <h2>Booking defaults, notifications, approvals, and security.</h2>
           </div>
-          <div className="vp-panel-grid">
-            <div className="vp-dash-panel">
-              <BuyerSettingsForm
-                settings={adSettings}
-                status={settingsStatus}
-                error={settingsError}
-                onSave={saveSettings}
-                onMfaStatusChange={setMfaEnabled}
-              />
-            </div>
-            <aside className="vp-dash-panel">
-              <h3>Current defaults</h3>
-              <div className="vp-dash-list">
-                <div className="vp-dash-item"><span>Billing currency</span><strong>{adSettings.billingCurrency}</strong></div>
-                <div className="vp-dash-item"><span>Flight length</span><strong>{adSettings.defaultFlightDays} days</strong></div>
-                <div className="vp-dash-item"><span>Budget cap</span><strong>{adSettings.budgetCapMinor ? currency(adSettings.budgetCapMinor / 100) : 'None'}</strong></div>
-                <div className="vp-dash-item"><span>Approval workflow</span><strong>{adSettings.approvalWorkflow === 'DIRECT' ? 'Direct' : 'Manager'}</strong></div>
-                <div className="vp-dash-item"><span>Creative review</span><strong>{adSettings.creativeReviewRequired ? 'Required' : 'Optional'}</strong></div>
-                <div className="vp-dash-item"><span>Availability alerts</span><strong>{adSettings.availabilityAlerts ? 'On' : 'Off'}</strong></div>
-                <div className="vp-dash-item"><span>Invoice alerts</span><strong>{adSettings.invoiceAlerts ? 'On' : 'Off'}</strong></div>
-              </div>
-            </aside>
+          <div className="vp-dash-panel">
+            <BuyerSettingsForm
+              settings={adSettings}
+              status={settingsStatus}
+              error={settingsError}
+              onSave={saveSettings}
+              onMfaStatusChange={setMfaEnabled}
+            />
           </div>
         </section>
     </DashboardShell>

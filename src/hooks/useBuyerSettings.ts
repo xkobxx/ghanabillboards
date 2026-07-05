@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { buyerSettingsApi } from '../lib/buyerSettingsApi';
-import { sessionStore } from '../lib/apiClient';
 import {
   DEFAULT_BUYER_SETTINGS,
   type BuyerSettings,
@@ -34,11 +33,6 @@ export function useBuyerSettings(userId: string) {
     let active = true;
     setSettings(readCachedBuyerSettings(userId));
 
-    if (!sessionStore.getToken()) {
-      setStatus('ready');
-      return () => { active = false; };
-    }
-
     setStatus('loading');
     buyerSettingsApi.get()
       .then((next) => {
@@ -61,12 +55,8 @@ export function useBuyerSettings(userId: string) {
     setError('');
     try {
       let next: BuyerSettings;
-      if (sessionStore.getToken()) {
-        const { mfaEnabled: _mfaEnabled, ...update } = draft;
-        next = await buyerSettingsApi.update(update as BuyerSettingsUpdate);
-      } else {
-        next = { ...draft, version: draft.version + 1 };
-      }
+      const { mfaEnabled: _mfaEnabled, ...update } = draft;
+      next = await buyerSettingsApi.update(update as BuyerSettingsUpdate);
       setSettings(next);
       writeCache(userId, next);
       setStatus('ready');

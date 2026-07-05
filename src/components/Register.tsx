@@ -12,10 +12,6 @@ interface RegisterProps {
 
 type RegisterRole = 'buyer' | 'publisher' | 'investor';
 
-interface StoredUser extends User {
-  password: string;
-}
-
 const ROLE_OPTIONS: { value: RegisterRole; label: string }[] = [
   { value: 'buyer', label: 'Buyer' },
   { value: 'publisher', label: 'Publisher' },
@@ -44,24 +40,6 @@ export default function Register({
 
   useEffect(() => cancelPendingRegistration, [cancelPendingRegistration]);
 
-  const getRegisteredUsers = (): StoredUser[] => {
-    const raw = localStorage.getItem('vantage_users');
-    if (!raw) return [];
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return Array.isArray(parsed) ? (parsed as StoredUser[]) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveRegisteredUser = (newUser: StoredUser) => {
-    localStorage.setItem(
-      'vantage_users',
-      JSON.stringify([...getRegisteredUsers(), newUser]),
-    );
-  };
-
   const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
@@ -83,24 +61,7 @@ export default function Register({
       });
       onSuccess(session.user);
     } catch (reason) {
-      const users = getRegisteredUsers();
-      if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-        setError('Email already registered. Try signing in instead.');
-        setIsLoading(false);
-        return;
-      }
-      const id = `${role}_${crypto.randomUUID()}`;
-      const registeredUser: StoredUser = {
-        id,
-        name,
-        company: 'Autonomous Agent Co.',
-        email,
-        password,
-        role,
-      };
-      saveRegisteredUser(registeredUser);
-      onSuccess(registeredUser);
-      if (reason instanceof Error && !navigator.onLine) setError('Saved locally while the gateway is offline.');
+      setError(reason instanceof Error ? reason.message : 'Registration failed.');
     } finally {
       setIsLoading(false);
     }

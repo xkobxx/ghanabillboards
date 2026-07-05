@@ -52,8 +52,8 @@ export default function BuyerSettingsForm({
         {saved && <span><Check size={14} /> Settings saved.</span>}
       </div>
 
-      <div className="vp-settings-groups" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0 32px', alignItems: 'start' }}>
-        <fieldset className="vp-settings-group" style={{ borderBottom: 'none' }}>
+      <div className="vp-settings-groups">
+        <fieldset className="vp-settings-group">
           <legend>Planning defaults</legend>
           <label className="vp-settings-row" htmlFor="buyer-billing-currency">
             <span>Billing currency<small>Used for estimates, caps, and invoice display.</small></span>
@@ -108,7 +108,7 @@ export default function BuyerSettingsForm({
           </label>
         </fieldset>
 
-        <fieldset className="vp-settings-group" style={{ borderBottom: 'none' }}>
+        <fieldset className="vp-settings-group">
           <legend>Governance</legend>
           <label className="vp-settings-row" htmlFor="buyer-approval-workflow">
             <span>Approval workflow<small>Choose whether requests go directly to publishers or pause for manager review.</small></span>
@@ -140,7 +140,7 @@ export default function BuyerSettingsForm({
           </div>
         </fieldset>
 
-        <fieldset className="vp-settings-group" style={{ gridColumn: '1 / -1' }}>
+        <fieldset className="vp-settings-group">
           <legend>Alert routing</legend>
           {([
             ['bookingStatusAlerts', 'Booking status alerts', 'Approval, rejection, live, and completion events.'],
@@ -163,7 +163,7 @@ export default function BuyerSettingsForm({
           ))}
         </fieldset>
 
-        <div className="vp-settings-group security" style={{ gridColumn: '1 / -1' }}>
+        <div className="vp-settings-group security">
           <p className="vp-settings-legend">Security</p>
           <MfaSettings enabled={settings.mfaEnabled} onStatusChange={onMfaStatusChange} />
         </div>

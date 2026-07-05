@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { validatePassword, type ProfileErrors } from '../lib/validation';
+import { authApi } from '../lib/authApi';
 
 interface PasswordChangeProps {
-  onChangePassword: (currentPassword: string, newPassword: string) => boolean;
   onClose: () => void;
 }
 
-export default function PasswordChange({ onChangePassword, onClose }: PasswordChangeProps) {
+export default function PasswordChange({ onClose }: PasswordChangeProps) {
   const [current, setCurrent] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -17,7 +17,7 @@ export default function PasswordChange({ onChangePassword, onClose }: PasswordCh
   const [showConfirm, setShowConfirm] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validationErrors = validatePassword(current, newPw);
     if (validationErrors.currentPassword || validationErrors.newPassword) {
       setErrors(validationErrors);
@@ -28,12 +28,12 @@ export default function PasswordChange({ onChangePassword, onClose }: PasswordCh
       return;
     }
 
-    const ok = onChangePassword(current, newPw);
-    if (ok) {
+    try {
+      await authApi.changePassword({ currentPassword: current, newPassword: newPw });
       setStatus('success');
       setTimeout(onClose, 1500);
-    } else {
-      setErrors({ currentPassword: 'Current password is incorrect' });
+    } catch (reason) {
+      setErrors({ currentPassword: reason instanceof Error ? reason.message : 'Current password is incorrect' });
       setStatus('error');
     }
   };

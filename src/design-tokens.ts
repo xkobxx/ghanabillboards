@@ -139,9 +139,9 @@ export const designTokens = {
     light: {
       fontFamily: {
         heading: "'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif",
-        sans: "'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif",
+        sans: "'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif",
         serif: "'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif",
-        mono: "'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace",
+        mono: "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
       },
       fontSize: {
         display: 'clamp(48px, 6vw, 96px)',
@@ -187,9 +187,9 @@ export const designTokens = {
     cinematic: {
       fontFamily: {
         heading: "'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif",
-        sans: "'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif",
+        sans: "'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif",
         serif: "'Urbanist Variable', 'Urbanist', ui-sans-serif, system-ui, sans-serif",
-        mono: "'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace",
+        mono: "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
       },
       fontSize: {
         display: 'clamp(3rem, 6vw, 7rem)',

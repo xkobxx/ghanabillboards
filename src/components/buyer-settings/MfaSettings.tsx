@@ -2,7 +2,6 @@ import { useState } from 'react';
 import QRCode from 'qrcode';
 import { Check, Copy, KeyRound, ShieldCheck } from 'lucide-react';
 import { mfaApi } from '../../lib/mfaApi';
-import { sessionStore } from '../../lib/apiClient';
 
 interface MfaSettingsProps {
   enabled: boolean;
@@ -19,10 +18,6 @@ export default function MfaSettings({ enabled, onStatusChange }: MfaSettingsProp
   const [busy, setBusy] = useState(false);
 
   const enroll = async () => {
-    if (!sessionStore.getToken()) {
-      setError('MFA setup requires a live account. Not available in demo mode.');
-      return;
-    }
     setBusy(true);
     setError('');
     try {
