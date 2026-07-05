@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type React from 'react';
 import {
   Activity, Server, FileJson, SlidersHorizontal, ShieldCheck,
@@ -31,9 +31,7 @@ export default function AdminPage() {
   const [logs, setLogs] = useState<GatewayLog[]>(INITIAL_LOGS);
   const [selectedLog, setSelectedLog] = useState<GatewayLog | null>(INITIAL_LOGS[0]);
   const [gateway, setGateway] = useState({ rateLimit: 240, dbPool: 24, redisTTL: 180 });
-  const [editingProfile, setEditingProfile] = useState(false);
   const [profileDraft, setProfileDraft] = useState({ name: '', email: '', company: '' });
-  const [editingSettings, setEditingSettings] = useState(false);
   const [adminSettings, setAdminSettings] = useLocalStorage('vantage_admin_settings', { latencyAlerts: true, disputeAlerts: true, twoFA: true, auditRetention: 30, payloadVisibility: 'masked' as 'masked' | 'full' });
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
@@ -42,7 +40,13 @@ export default function AdminPage() {
     { id: 'd1', title: 'Creative mismatch evidence upload', status: 'open' as const },
     { id: 'd2', title: 'Calendar lock conflict', status: 'review' as const },
   ]);
-  const [privileges, setPrivileges] = useLocalStorage('vantage_admin_privileges', { advertiserBook: true, vendorApprove: true, adminInspect: true, investorView: true });
+  const [privileges, setPrivileges] = useLocalStorage('vantage_admin_privileges', { buyerBook: true, publisherApprove: true, adminInspect: true, investorView: true });
+
+  useEffect(() => {
+    if (!currentUser) return;
+    setProfileDraft({ name: currentUser.name, email: currentUser.email, company: currentUser.company || '' });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   /* ── Guard ── */
   if (!currentUser) {
@@ -73,6 +77,16 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const saveProfile = () => {
+    const errs = validateProfile(profileDraft.name, profileDraft.email);
+    setProfileErrors(errs);
+    if (errs.name || errs.email) return;
+    setCurrentUser({ ...currentUser, name: profileDraft.name, email: profileDraft.email, company: profileDraft.company || undefined });
+    setProfileSaved(true);
+    setProfileErrors({});
+    setTimeout(() => setProfileSaved(false), 2000);
+  };
 
   /* ── Derived data ── */
   const initials = currentUser.name
@@ -189,31 +203,53 @@ export default function AdminPage() {
 
         {/* ── Logs ── */}
         <section className={`vp-dashboard-view${activeView === 'logs' ? ' active' : ''}`}>
-          <div className="vp-dash-panel">
-            <div className="vp-panel-title">
-              <div>
-                <h3>API log stream</h3>
-                <p className="text-sm" style={{ color: 'rgba(245,240,231,.68)', margin: '4px 0 0' }}>Click any request to inspect the raw payload.</p>
-              </div>
-              <button className="vp-btn sm" onClick={generateTraffic}>Generate traffic</button>
-            </div>
-            <div className="vp-terminal">
-              {logs.map(l => (
-                <div
-                  key={l.id}
-                  className={`vp-log-row${selectedLog?.id === l.id ? ' active' : ''}`}
-                  onClick={() => setSelectedLog(l)}
-                >
-                  <span>{l.method}</span>
-                  <span>{l.endpoint}</span>
-                  <span>{l.module}</span>
-                  <span className={l.status < 300 ? 'vp-status-ok' : l.status === 429 ? 'vp-status-warn' : 'vp-status-bad'}>
-                    {l.status}
-                  </span>
-                  <span>{l.latencyMs}ms</span>
+          <div className="vp-panel-grid">
+            <div className="vp-dash-panel">
+              <div className="vp-panel-title">
+                <div>
+                  <h3>API log stream</h3>
+                  <p className="text-sm" style={{ color: 'rgba(245,240,231,.68)', margin: '4px 0 0' }}>Click any request to inspect the raw payload.</p>
                 </div>
-              ))}
+                <button className="vp-btn sm" onClick={generateTraffic}>Generate traffic</button>
+              </div>
+              <div className="vp-terminal">
+                {logs.map(l => (
+                  <div
+                    key={l.id}
+                    className={`vp-log-row${selectedLog?.id === l.id ? ' active' : ''}`}
+                    onClick={() => setSelectedLog(l)}
+                  >
+                    <span>{l.method}</span>
+                    <span>{l.endpoint}</span>
+                    <span>{l.module}</span>
+                    <span className={l.status < 300 ? 'vp-status-ok' : l.status === 429 ? 'vp-status-warn' : 'vp-status-bad'}>
+                      {l.status}
+                    </span>
+                    <span>{l.latencyMs}ms</span>
+                  </div>
+                ))}
+              </div>
             </div>
+            <aside className="vp-dash-panel">
+              <h3>Payload preview</h3>
+              <p className="text-sm" style={{ color: 'rgba(245,240,231,.68)', margin: '0 0 8px' }}>
+                {selectedLog ? `${selectedLog.method} ${selectedLog.endpoint} · ${selectedLog.status}` : 'Select a log entry to preview.'}
+              </p>
+              <pre className="vp-payload-box" style={{ maxHeight: 320, overflow: 'auto', fontSize: 12 }}>
+                {selectedLog
+                  ? JSON.stringify({
+                      id: selectedLog.id,
+                      timestamp: selectedLog.timestamp,
+                      method: selectedLog.method,
+                      endpoint: selectedLog.endpoint,
+                      module: selectedLog.module,
+                      status: selectedLog.status,
+                      latencyMs: selectedLog.latencyMs,
+                      payload: selectedLog.payload || { synthetic: true, module: selectedLog.module, status: selectedLog.status },
+                    }, null, 2)
+                  : 'No log selected.'}
+              </pre>
+            </aside>
           </div>
         </section>
 
@@ -245,21 +281,16 @@ export default function AdminPage() {
         <section className={`vp-dashboard-view${activeView === 'rules' ? ' active' : ''}`}>
           <div className="vp-dash-panel">
             <h3>Gateway rule injector</h3>
-            <div>
+            <p className="text-sm" style={{ color: 'rgba(245,240,231,.68)', margin: '0 0 16px' }}>Adjust rate limits, DB pool size, and Redis TTL in the control prototype.</p>
+            <div className="vp-panel-col-grid three">
               {([
-                ['rateLimit', 'Max API rate limit', 'rpm', 60, 600] as const,
-                ['dbPool', 'DB connection pool', 'conn', 4, 60] as const,
-                ['redisTTL', 'Redis cache TTL', 'sec', 30, 600] as const,
+                ['rateLimit', 'Rate limit', 'rpm', 60, 600] as const,
+                ['dbPool', 'DB pool', 'conn', 4, 60] as const,
+                ['redisTTL', 'Redis TTL', 'sec', 30, 600] as const,
               ] as Array<[keyof typeof gateway, string, string, number, number]>).map(([key, label, unit, min, max]) => (
-                <div key={String(key)} className="vp-control-row">
+                <div key={String(key)} className="vp-mini-card" style={{ gap: 14 }}>
+                  <h4><SlidersHorizontal size={17} />{label}</h4>
                   <div>
-                    <label
-                      htmlFor={`gw-${String(key)}`}
-                      className="text-caption"
-                      style={{ display: 'block', fontFamily: 'monospace', letterSpacing: '.09em', textTransform: 'uppercase', color: 'rgba(245,240,231,.46)', marginBottom: 8 }}
-                    >
-                      {label}
-                    </label>
                     <input
                       id={`gw-${String(key)}`}
                       type="range"
@@ -270,7 +301,7 @@ export default function AdminPage() {
                       onChange={e => setGateway(prev => ({ ...prev, [key]: Number(e.target.value) }))}
                     />
                   </div>
-                  <output className="text-body-sm" style={{ fontFamily: 'monospace', color: '#a8ff60', textAlign: 'right' }}>
+                  <output style={{ fontFamily: 'monospace', fontSize: 'var(--text-body-lg)', fontWeight: 700, color: '#a8ff60' }}>
                     {gateway[key]} {unit}
                   </output>
                 </div>
@@ -286,8 +317,8 @@ export default function AdminPage() {
             <p className="text-sm" style={{ color: 'rgba(245,240,231,.68)', margin: '0 0 16px' }}>Toggle role capabilities. Changes persist across sessions.</p>
             <div className="vp-privilege-grid">
               {([
-                { key: 'advertiserBook' as const, role: 'Advertiser', label: 'Advertiser can book campaigns' },
-                { key: 'vendorApprove' as const, role: 'Vendor', label: 'Vendor can approve bookings' },
+                { key: 'buyerBook' as const, role: 'Buyer', label: 'Buyer can book campaigns' },
+                { key: 'publisherApprove' as const, role: 'Publisher', label: 'Publisher can approve bookings' },
                 { key: 'adminInspect' as const, role: 'Admin', label: 'Admin can inspect payloads' },
                 { key: 'investorView' as const, role: 'Investor', label: 'Investor can view deck' },
               ]).map(({ key, role, label }) => (
@@ -305,27 +336,39 @@ export default function AdminPage() {
 
         {/* ── Disputes ── */}
         <section className={`vp-dashboard-view${activeView === 'disputes' ? ' active' : ''}`}>
-          <div className="vp-dash-panel">
-            <h3>Dispute and review queue</h3>
-            <div className="vp-dash-list">
-              {disputes.map(d => (
-                <div key={d.id} className="vp-dash-item">
-                  <span>{d.title}</span>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span className={`vp-status-pill ${d.status === 'resolved' ? 'ok' : d.status === 'dismissed' ? '' : 'warn'}`}>
-                      {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
-                    </span>
-                    {d.status !== 'resolved' && d.status !== 'dismissed' && (
-                      <>
-                        <button className="vp-btn sm" type="button" onClick={() => { setActiveView('logs'); }} title="Investigate in logs">Investigate</button>
-                        <button className="vp-btn sm primary" type="button" onClick={() => setDisputes(prev => prev.map(dd => dd.id === d.id ? { ...dd, status: 'resolved' } : dd))}><CheckCircle size={14} /></button>
-                        <button className="vp-btn sm" type="button" onClick={() => setDisputes(prev => prev.map(dd => dd.id === d.id ? { ...dd, status: 'dismissed' } : dd))}><XCircle size={14} /></button>
-                      </>
-                    )}
+          <div className="vp-panel-grid">
+            <div className="vp-dash-panel">
+              <h3>Dispute and review queue</h3>
+              <div className="vp-dash-list">
+                {disputes.length === 0 ? (
+                  <div className="vp-empty">No active disputes. Resolved items are cleared from the queue.</div>
+                ) : disputes.map(d => (
+                  <div key={d.id} className="vp-dash-item">
+                    <span>{d.title}</span>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span className={`vp-status-pill ${d.status === 'resolved' ? 'ok' : d.status === 'dismissed' ? '' : 'warn'}`}>
+                        {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
+                      </span>
+                      {d.status !== 'resolved' && d.status !== 'dismissed' && (
+                        <>
+                          <button className="vp-btn sm" type="button" onClick={() => { setActiveView('logs'); }} title="Investigate in logs">Investigate</button>
+                          <button className="vp-btn sm primary" type="button" onClick={() => setDisputes(prev => prev.map(dd => dd.id === d.id ? { ...dd, status: 'resolved' } : dd))}><CheckCircle size={14} /></button>
+                          <button className="vp-btn sm" type="button" onClick={() => setDisputes(prev => prev.map(dd => dd.id === d.id ? { ...dd, status: 'dismissed' } : dd))}><XCircle size={14} /></button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+            <aside className="vp-dash-panel">
+              <h3>Resolution context</h3>
+              <div className="vp-profile-context">
+                <div className="vp-dash-item"><span>Inspect the API log stream to trace dispute origin and request payload.</span><strong>Investigate</strong></div>
+                <div className="vp-dash-item"><span>Approving a dispute clears it from the active queue and updates booking records.</span><strong>Resolve</strong></div>
+                <div className="vp-dash-item"><span>Dismissing removes the dispute without modifying any related bookings.</span><strong>Dismiss</strong></div>
+              </div>
+            </aside>
           </div>
         </section>
 
@@ -347,32 +390,14 @@ export default function AdminPage() {
 
               <div className="vp-panel-title">
                 <div><h3>Account profile</h3></div>
-                {!editingProfile ? (
-                  <button className="vp-btn sm" type="button" onClick={() => { setProfileDraft({ name: currentUser.name, email: currentUser.email, company: currentUser.company || '' }); setEditingProfile(true); }}>Edit Profile</button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button className="vp-btn sm primary" type="button" onClick={() => { const errs = validateProfile(profileDraft.name, profileDraft.email); if (errs.name || errs.email) { setProfileErrors(errs); return; } setCurrentUser({ ...currentUser, name: profileDraft.name, email: profileDraft.email, company: profileDraft.company || undefined }); setEditingProfile(false); setProfileSaved(true); setProfileErrors({}); setTimeout(() => setProfileSaved(false), 2000); }}>Save</button>
-                    <button className="vp-btn sm" type="button" onClick={() => { setEditingProfile(false); setProfileErrors({}); }}>Cancel</button>
-                    {profileSaved && <span className="text-body-xs" style={{ color: '#a8ff60', fontWeight: 700, fontFamily: 'monospace' }}>✓ Saved</span>}
-                  </div>
-                )}
+                {profileSaved && <span className="text-body-xs" style={{ color: '#a8ff60', fontWeight: 700, fontFamily: 'monospace' }}>✓ Saved</span>}
               </div>
               <div className="vp-dash-list">
-                {editingProfile ? (
-                  <>
-                    <div className="vp-dash-item"><span>Full name</span><input type="text" value={profileDraft.name} onChange={e => { setProfileDraft(d => ({ ...d, name: e.target.value })); if (profileErrors.name) setProfileErrors(p => ({ ...p, name: undefined })); }} className="vp-input-inline" /></div>
-                    {profileErrors.name && <p className="text-body-xs" style={{ color: '#ef4444', margin: '-8px 0 4px 0', fontFamily: 'monospace' }}>{profileErrors.name}</p>}
-                    <div className="vp-dash-item"><span>Operator email</span><input type="email" value={profileDraft.email} onChange={e => { setProfileDraft(d => ({ ...d, email: e.target.value })); if (profileErrors.email) setProfileErrors(p => ({ ...p, email: undefined })); }} className="vp-input-inline" /></div>
-                    {profileErrors.email && <p className="text-body-xs" style={{ color: '#ef4444', margin: '-8px 0 4px 0', fontFamily: 'monospace' }}>{profileErrors.email}</p>}
-                    <div className="vp-dash-item"><span>Organisation</span><input type="text" value={profileDraft.company} onChange={e => setProfileDraft(d => ({ ...d, company: e.target.value }))} className="vp-input-inline" /></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="vp-dash-item"><span>Full name</span><strong>{currentUser.name}</strong></div>
-                    <div className="vp-dash-item"><span>Operator email</span><strong>{currentUser.email}</strong></div>
-                    {currentUser.company && <div className="vp-dash-item"><span>Organisation</span><strong>{currentUser.company}</strong></div>}
-                  </>
-                )}
+                <div className="vp-dash-item"><span>Full name</span><input type="text" value={profileDraft.name} onChange={e => { setProfileDraft(d => ({ ...d, name: e.target.value })); if (profileErrors.name) setProfileErrors(p => ({ ...p, name: undefined })); }} onBlur={saveProfile} className="vp-input-inline" /></div>
+                {profileErrors.name && <p className="text-body-xs" style={{ color: '#ef4444', margin: '-8px 0 4px 0', fontFamily: 'monospace' }}>{profileErrors.name}</p>}
+                <div className="vp-dash-item"><span>Operator email</span><input type="email" value={profileDraft.email} onChange={e => { setProfileDraft(d => ({ ...d, email: e.target.value })); if (profileErrors.email) setProfileErrors(p => ({ ...p, email: undefined })); }} onBlur={saveProfile} className="vp-input-inline" /></div>
+                {profileErrors.email && <p className="text-body-xs" style={{ color: '#ef4444', margin: '-8px 0 4px 0', fontFamily: 'monospace' }}>{profileErrors.email}</p>}
+                <div className="vp-dash-item"><span>Organisation</span><input type="text" value={profileDraft.company} onChange={e => setProfileDraft(d => ({ ...d, company: e.target.value }))} onBlur={saveProfile} className="vp-input-inline" /></div>
                 <div className="vp-dash-item"><span>Role</span><strong>Gateway Administrator</strong></div>
                 <div className="vp-dash-item"><span>Operator ID</span><strong>{currentUser.id}</strong></div>
                 <div className="vp-dash-item"><span>Security clearance</span><strong>Level 3 Gateway Operator</strong></div>
@@ -411,50 +436,24 @@ export default function AdminPage() {
             <div className="vp-dash-panel">
               <div className="vp-panel-title">
                 <div><h3>Account settings</h3></div>
-                {!editingSettings ? (
-                  <button className="vp-btn sm" type="button" onClick={() => setEditingSettings(true)}>Edit Settings</button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="vp-btn sm primary" type="button" onClick={() => setEditingSettings(false)}>Save</button>
-                    <button className="vp-btn sm" type="button" onClick={() => setEditingSettings(false)}>Cancel</button>
-                  </div>
-                )}
               </div>
               <div className="vp-dash-list">
                 <div className="vp-dash-item"><span>Gateway environment</span><strong>Sandbox traffic layer</strong></div>
-                {editingSettings ? (
-                  <div className="vp-dash-item">
-                    <span>Audit retention (days)</span>
-                    <input type="number" min={7} max={90} value={adminSettings.auditRetention} onChange={e => setAdminSettings(s => ({ ...s, auditRetention: Number(e.target.value) }))} className="text-body-sm" style={{ width: 70, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(245,240,231,.16)', padding: '4px 8px', borderRadius: 6, color: '#f5f0e7', textAlign: 'right', fontFamily: 'inherit' }} />
-                  </div>
-                ) : (
-                  <div className="vp-dash-item"><span>Audit retention</span><strong>{adminSettings.auditRetention} days</strong></div>
-                )}
-                {editingSettings ? (
-                  <div className="vp-dash-item">
-                    <span>Payload visibility</span>
-                    <select value={adminSettings.payloadVisibility} onChange={e => setAdminSettings(s => ({ ...s, payloadVisibility: e.target.value as 'masked' | 'full' }))} className="vp-select-inline">
-                      <option value="masked">Masked payloads</option>
-                      <option value="full">Full payloads</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div className="vp-dash-item"><span>Payload visibility</span><strong>{adminSettings.payloadVisibility === 'masked' ? 'Masked payloads by default' : 'Full payload visibility'}</strong></div>
-                )}
+                <div className="vp-dash-item">
+                  <span>Audit retention (days)</span>
+                  <input type="number" min={7} max={90} value={adminSettings.auditRetention} onChange={e => setAdminSettings(s => ({ ...s, auditRetention: Number(e.target.value) }))} className="text-body-sm" style={{ width: 70, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(245,240,231,.16)', padding: '4px 8px', borderRadius: 0, color: '#f5f0e7', textAlign: 'right', fontFamily: 'inherit' }} />
+                </div>
+                <div className="vp-dash-item">
+                  <span>Payload visibility</span>
+                  <select value={adminSettings.payloadVisibility} onChange={e => setAdminSettings(s => ({ ...s, payloadVisibility: e.target.value as 'masked' | 'full' }))} className="vp-select-inline">
+                    <option value="masked">Masked payloads</option>
+                    <option value="full">Full payloads</option>
+                  </select>
+                </div>
                 <div className="vp-dash-item"><span>Rate-limit alert threshold</span><strong>{gateway.rateLimit} rpm</strong></div>
-                {editingSettings ? (
-                  <>
-                    <div className="vp-dash-item"><span>Latency alerts</span><Toggle checked={adminSettings.latencyAlerts} onChange={() => setAdminSettings(s => ({ ...s, latencyAlerts: !s.latencyAlerts }))} /></div>
-                    <div className="vp-dash-item"><span>Dispute alerts</span><Toggle checked={adminSettings.disputeAlerts} onChange={() => setAdminSettings(s => ({ ...s, disputeAlerts: !s.disputeAlerts }))} /></div>
-                    <div className="vp-dash-item"><span>Two-factor authentication</span><Toggle checked={adminSettings.twoFA} onChange={() => setAdminSettings(s => ({ ...s, twoFA: !s.twoFA }))} /></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="vp-dash-item"><span>Latency alerts</span><strong>{adminSettings.latencyAlerts ? 'Enabled' : 'Disabled'}</strong></div>
-                    <div className="vp-dash-item"><span>Dispute alerts</span><strong>{adminSettings.disputeAlerts ? 'Enabled' : 'Disabled'}</strong></div>
-                    <div className="vp-dash-item"><span>Two-factor authentication</span><strong>{adminSettings.twoFA ? 'Enabled (required)' : 'Disabled'}</strong></div>
-                  </>
-                )}
+                <div className="vp-dash-item"><span>Latency alerts</span><Toggle checked={adminSettings.latencyAlerts} onChange={() => setAdminSettings(s => ({ ...s, latencyAlerts: !s.latencyAlerts }))} /></div>
+                <div className="vp-dash-item"><span>Dispute alerts</span><Toggle checked={adminSettings.disputeAlerts} onChange={() => setAdminSettings(s => ({ ...s, disputeAlerts: !s.disputeAlerts }))} /></div>
+                <div className="vp-dash-item"><span>Two-factor authentication</span><Toggle checked={adminSettings.twoFA} onChange={() => setAdminSettings(s => ({ ...s, twoFA: !s.twoFA }))} /></div>
               </div>
             </div>
             <aside className="vp-dash-panel">
