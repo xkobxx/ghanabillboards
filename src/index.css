@@ -931,7 +931,6 @@ code, pre, .font-mono {
   padding: clamp(48px, 5.5vw, 72px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: var(--dashboard-surface);
   color: var(--color-text-primary);
   scrollbar-gutter: stable;
 }
@@ -1451,6 +1450,7 @@ code, pre, .font-mono {
   --auth-alert-background: #321c22;
   --auth-alert-border: #b55e67;
   --auth-alert-text: #ffb8bd;
+  background: var(--color-surface);
 }
 
 .auth-close:hover {
@@ -2329,7 +2329,7 @@ a.rounded-full { border-radius: var(--radius-none); }
 
 /* VP Auth Modal */
 .vp-auth-backdrop {
-  position: fixed; inset: 0; z-index: 10000;
+  position: fixed; inset: 0; z-index: 9997;
   background: var(--vp-bg-glass3); backdrop-filter: blur(6px);
   display: grid; place-items: center; padding: 24px;
   animation: vp-auth-backdrop-enter .2s var(--vp-ease) both;
@@ -2474,6 +2474,7 @@ a.rounded-full { border-radius: var(--radius-none); }
 /* Hero keeps full-height impact; content sections size to their content */
 .vp-stage.vp-hero { min-height: 100svh; padding-top: 132px; padding-bottom: 0; }
 .vp-stage.compact { padding: 96px 24px; }
+.vp-stage.vp-stack.compact { min-height: auto; }
 .vp-wrap { width: min(var(--vp-max), 100%); margin: 0 auto; }
 .vp-center { text-align: center; }
 .vp-stage.vp-center .vp-wrap { display: flex; flex-direction: column; align-items: center; }
@@ -2491,7 +2492,6 @@ a.rounded-full { border-radius: var(--radius-none); }
   align-items: center;
   box-shadow: 0 -1px 0 var(--vp-line), 0 8px 32px -16px rgba(0, 0, 0, .12);
   z-index: calc(var(--stack-index, 1) + 1);
-  will-change: transform;
 }
 
 .vp-stack-shadow {
@@ -3124,7 +3124,124 @@ a.rounded-full { border-radius: var(--radius-none); }
 .vp-system-module:hover .vp-step-icon { transform: translateY(-3px); background: var(--vp-primary); color: var(--vp-primary-ink); }
 .vp-step-head .vp-num { margin: 0; font-size: var(--text-body-sm); }
 
-.vp-cta { text-align: center; }
+.vp-stage.vp-stack.vp-cta {
+  min-height: clamp(480px, 60vh, 620px);
+  padding-block: clamp(72px, 8vw, 104px);
+  overflow: hidden;
+  isolation: isolate;
+  align-items: stretch;
+  background: #071009;
+  color: #f5f0e7;
+  text-align: left;
+  box-shadow: none;
+}
+.vp-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 11, 7, .96) 0%, rgba(5, 11, 7, .88) 38%, rgba(5, 11, 7, .44) 68%, rgba(5, 11, 7, .22) 100%),
+    linear-gradient(180deg, rgba(5, 11, 7, .22) 0%, rgba(5, 11, 7, .08) 52%, rgba(5, 11, 7, .72) 100%);
+  pointer-events: none;
+}
+.vp-cta-image {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 58% 48%;
+  filter: saturate(.72) contrast(1.08);
+}
+.vp-cta-layout {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(240px, 5fr);
+  align-items: center;
+}
+.vp-cta-copy {
+  max-width: 760px;
+}
+.vp-cta .vp-eyebrow {
+  color: #bffb84;
+}
+.vp-cta h2 {
+  max-width: 720px;
+  color: #f5f0e7;
+}
+.vp-cta .vp-lead {
+  max-width: 660px;
+  margin-top: 28px;
+  color: rgba(245, 240, 231, .78);
+  font-size: 16px;
+}
+.vp-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+.vp-cta .vp-btn {
+  min-height: 50px;
+}
+.vp-cta .vp-btn.primary {
+  border-color: #bffb84;
+  background: #bffb84;
+  color: #071009;
+}
+.vp-cta .vp-btn.primary:hover {
+  border-color: #d4ffad;
+  background: #d4ffad;
+}
+.vp-cta .vp-cta-secondary {
+  border-color: rgba(245, 240, 231, .48);
+  background: rgba(5, 11, 7, .34);
+  color: #f5f0e7;
+}
+.vp-cta .vp-cta-secondary:hover {
+  border-color: #f5f0e7;
+  background: rgba(5, 11, 7, .62);
+}
+.vp-cta-signin {
+  margin-top: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(245, 240, 231, .68);
+  font: inherit;
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+}
+.vp-cta-signin span {
+  color: #f5f0e7;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(191, 251, 132, .58);
+  text-underline-offset: 4px;
+}
+.vp-cta-signin:hover span {
+  text-decoration-color: #bffb84;
+}
+.vp-cta-signin:focus-visible {
+  outline: 2px solid #bffb84;
+  outline-offset: 6px;
+}
+.vp-cta-credit {
+  position: absolute;
+  right: 34px;
+  bottom: 30px;
+  z-index: 2;
+  color: rgba(245, 240, 231, .56);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.vp-cta-credit:hover {
+  color: #f5f0e7;
+}
 
 @media (max-width: 900px) {
   .vp-hero-split { grid-template-columns: 1fr; gap: 36px; }
@@ -3132,12 +3249,13 @@ a.rounded-full { border-radius: var(--radius-none); }
   .vp-hero-visual { width: 100%; max-width: 720px; margin: 0 auto; padding-left: 0; }
   .vp-problem-layout { grid-template-columns: 1fr; gap: 48px; }
   .vp-problem-copy h2 { max-width: 760px; }
+  .vp-cta-layout { grid-template-columns: minmax(0, 1fr); }
+  .vp-cta::before {
+    background:
+      linear-gradient(90deg, rgba(5, 11, 7, .95) 0%, rgba(5, 11, 7, .78) 64%, rgba(5, 11, 7, .4) 100%),
+      linear-gradient(180deg, rgba(5, 11, 7, .2), rgba(5, 11, 7, .78));
+  }
 }
-
-/* Reveal animations — non-hero sections only; hero uses GSAP entrance timeline */
-.vp-stage:not(.vp-hero) .reveal,
-.vp-stage:not(.vp-hero) .fade-up { opacity: 0; transform: translateY(36px); }
-.vp-home .is-revealed { opacity: 1 !important; transform: none !important; transition: opacity .8s var(--vp-ease), transform .8s var(--vp-ease); }
 
 /* ── Page load cinematic entrance ── */
 .vp-entrance {
@@ -3174,6 +3292,15 @@ a.rounded-full { border-radius: var(--radius-none); }
   .vp-inv-foot { align-items: stretch; flex-direction: column; }
   .vp-btn { width: 100%; }
   .vp-pill-row { flex-direction: column; align-items: stretch; }
+  .vp-stage.vp-stack.vp-cta {
+    min-height: 540px;
+    padding: 72px 24px 84px;
+  }
+  .vp-cta-image { object-position: 64% center; }
+  .vp-cta .vp-lead { margin-top: 22px; }
+  .vp-cta-actions { flex-direction: column; margin-top: 30px; }
+  .vp-cta-signin { margin-top: 20px; }
+  .vp-cta-credit { right: 24px; bottom: 22px; }
 }
 
 /* ============================================

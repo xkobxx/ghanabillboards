@@ -187,7 +187,7 @@ export default function BlueprintPage() {
             <h2 className="reveal" id="flow-title">From search to live campaign in six steps.</h2>
             <p className="vp-lead reveal">Deep workflows sit behind each role. Here's the full sequence.</p>
           </div>
-          <div style={{ borderLeft: '1px solid var(--vp-line)', marginLeft: 20 }}>
+          <div style={{ marginLeft: 20 }}>
             {FLOW_STEPS.map(({ num, Icon, title, desc, role }) => (
               <article key={num} className="reveal" style={{
                 display: 'grid',
