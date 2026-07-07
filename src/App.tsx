@@ -22,6 +22,7 @@ import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/AboutPage';
 import LocationsPage from './pages/LocationsPage';
 import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import CaseStudiesPage from './pages/CaseStudiesPage';
 import PublishPage from './pages/PublishPage';
 import FaqPage from './pages/FaqPage';
@@ -231,6 +232,7 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/locations" element={<LocationsPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/case-studies" element={<CaseStudiesPage />} />
         <Route path="/publish" element={<PublishPage />} />
         <Route path="/faq" element={<FaqPage />} />

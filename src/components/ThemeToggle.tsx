@@ -9,7 +9,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="vp-btn sm rounded-none"
+      className="vp-btn sm icon vp-theme-toggle rounded-none"
       aria-label={`Switch to ${isLight ? 'cinematic dark' : 'light'} mode`}
     >
       <AnimatePresence mode="wait" initial={false}>

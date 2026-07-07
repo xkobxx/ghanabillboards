@@ -97,6 +97,7 @@ model User {
   notifications       Notification[]
   availabilityWatches AvailabilityWatch[]
   creativeAssets      CreativeAsset[]
+  blogPosts           BlogPost[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 }
@@ -287,6 +288,21 @@ model ImpressionLog {
 
   @@index([billboardId, date])
   @@index([date])
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String
+  body      String
+  category  String
+  imageUrl  String   @default("")
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PaystackTransaction {

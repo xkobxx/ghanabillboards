@@ -15,6 +15,7 @@ import creativeRoutes from './routes/creative';
 import approvalRoutes from './routes/approvals';
 import analyticsRoutes from './routes/analytics';
 import paymentRoutes from './routes/payments';
+import blogRoutes from './routes/blogs';
 
 export function createApp() {
   const app = express();
@@ -42,6 +43,7 @@ export function createApp() {
   app.use('/api/approvals', approvalRoutes);
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/payments', paymentRoutes);
+  app.use('/api/blogs', blogRoutes);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -68,6 +68,20 @@ export interface GatewayLog {
   payload?: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  body: string;
+  category: string;
+  imageUrl: string;
+  authorId?: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;

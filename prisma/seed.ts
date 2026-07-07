@@ -238,6 +238,80 @@ async function main() {
     }
   }
   console.log('✅ Impression logs seeded (30 days × 5 billboards)');
+
+  // ── Blog posts ──────────────────────────────────────────────────────────
+  const blogPosts = [
+    {
+      slug: 'state-of-ooh-advertising-africa-2026',
+      title: 'The State of OOH Advertising in Africa 2026',
+      excerpt: 'Out-of-home advertising across Sub-Saharan Africa is projected to reach $1.6B by 2028, driven by urbanisation, digital screen adoption, and programmatic buying.',
+      body: '<p>Out-of-home advertising across Sub-Saharan Africa is projected to reach $1.6B by 2028, driven by urbanisation, digital screen adoption, and programmatic buying. The market is evolving rapidly as cities like Lagos, Accra, Nairobi, Cape Town and Johannesburg invest in infrastructure that makes outdoor media more measurable and effective for advertisers.</p><p>Several key trends are converging. First, digital billboard uptake is surging—LED screens now account for over 35% of new inventory across the continent. Second, programmatic platforms are replacing the old method of phone calls and PDF rate cards, compressing booking times from weeks to minutes. Third, audiences are denser and younger than ever, with median ages between 18 and 22 across most Sub-Saharan markets.</p><p>We expect continued double-digit growth in the sector through the end of the decade.</p>',
+      category: 'Industry',
+      imageUrl: 'https://images.unsplash.com/photo-1504711434969-e33886168d6c?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+    {
+      slug: 'programmatic-booking-changing-outdoor-media',
+      title: 'How Programmatic Booking Is Changing Outdoor Media',
+      excerpt: 'The shift from phone calls and PDF rate cards to real-time programmatic marketplace is reducing booking times from 18 days to under 5 minutes.',
+      body: '<p>The shift from phone calls and PDF rate cards to real-time programmatic marketplace is reducing booking times from 18 days to under 5 minutes. For media agencies accustomed to manually coordinating with multiple publishers across cities, this represents a step-change in efficiency.</p><p>Programmatic booking on Vantage Point works across three phases: inventory discovery (search by city, format, traffic volume, and availability), creative submission and approval (upload assets, track review status), and campaign management (real-time proof of play, impression data, and invoicing).</p><p>Buyers who used programmatic booking in our Q1 2026 cohort reported a 92% reduction in time-to-live and a 40% increase in campaigns placed across multiple cities.</p>',
+      category: 'Product',
+      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+    {
+      slug: 'digital-vs-static-billboard-format',
+      title: 'Digital vs Static: Which Billboard Format Wins?',
+      excerpt: 'Digital billboards command 4x higher rates than static but offer dynamic creative switching. We break down the ROI case for each format.',
+      body: '<p>Digital billboards command 4x higher daily rates than static billboards, but they offer dynamic creative switching, real-time scheduling, and higher recall rates. Static billboards, on the other hand, provide consistent 24/7 visibility at a lower price point.</p><p>Our data shows that digital billboards deliver a 2.3x higher unaided recall rate in high-traffic urban corridors. However, static mega billboards along highways have longer dwell times and can be more cost-effective for long-running brand awareness campaigns.</p><p>The verdict? Use digital for time-sensitive, multi-creative, and targeted campaigns. Use static mega for sustained brand presence, highway corridors, and budget-conscious clients who need maximum square footage.</p>',
+      category: 'Market data',
+      imageUrl: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+    {
+      slug: 'accra-west-africa-ad-hub',
+      title: "Why Accra Is Becoming West Africa's Ad Hub",
+      excerpt: 'With a 7% GDP growth rate and a booming creative sector, Accra is attracting major advertising spend from multinational brands targeting West Africa.',
+      body: '<p>With a 7% GDP growth rate and a booming creative sector, Accra is attracting major advertising spend from multinational brands targeting the West African market. The city\'s strategic position at the centre of the ECOWAS corridor, combined with an English-speaking workforce and improving infrastructure, makes it a natural hub.</p><p>Several factors are accelerating this trend. The Kotoka International Airport upgrade has increased business travel capacity, the Tema Motorway expansion is improving traffic flow to major billboard corridors, and a wave of agency talent from Ghana\'s top universities is building the local media buying ecosystem.</p><p>We expect Accra to surpass Lagos in per-capita OOH spend by 2028, making it the most efficient market for outdoor advertising in the region.</p>',
+      category: 'Industry',
+      imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+    {
+      slug: 'real-time-traffic-verification',
+      title: 'Introducing Real-Time Traffic Verification',
+      excerpt: 'Our new telemetry integration gives buyers verified traffic counts, dwell time data, and proof-of-play for every campaign running on the platform.',
+      body: '<p>Our new telemetry integration gives buyers verified traffic counts, dwell time data, and proof-of-play for every campaign running on the platform. This feature, available to all buyers on the Vantage Point platform, addresses the single largest concern advertisers have about outdoor media: verifiable delivery.</p><p>The telemetry system works by ingesting data from multiple sources—road sensor arrays, mobile location aggregates, and publisher-reported counts—then triangulating an audience estimate per billboard per day. Buyers can view daily breakdowns, compare against booked impressions, and download verified proof-of-play reports for client billing.</p><p>In beta testing, our telemetry data matched independent third-party audits within a 4% margin of error, making it the most reliable verification system in African OOH today.</p>',
+      category: 'Product',
+      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+    {
+      slug: 'nairobi-ooh-market-2026-buyers-guide',
+      title: "Nairobi OOH Market: 2026 Buyer's Guide",
+      excerpt: 'Nairobi\'s billboard inventory grew 34% year-over-year. We map the key corridors, price ranges, and audience demographics for media buyers.',
+      body: '<p>Nairobi\'s billboard inventory grew 34% year-over-year, driven by infrastructure projects along the Thika Superhighway, the expansion of the JKIA expressway, and new digital installations in the CBD. This guide maps the key corridors, price ranges, and audience demographics for media buyers entering the market.</p><p><strong>Key corridors:</strong> Uhuru Highway (CBD commuters, 2.2M monthly impressions), Mombasa Road (airport traffic, 1.8M impressions), Thika Road (suburban professionals, 1.5M impressions), and Ngong Road (affluent residential, 900K impressions).</p><p><strong>Price ranges:</strong> Digital LED billboards range from $290-$450/day depending on location and traffic volume. Static mega formats run $120-$250/day. Most publishers offer volume discounts for multi-week campaigns and multi-site packages.</p><p>Our recommendation for first-time buyers: start with a 2-week campaign on a high-traffic digital board to benchmark performance, then expand to static formats for sustained presence.</p>',
+      category: 'Market data',
+      imageUrl: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=600&q=80',
+      published: true,
+      authorId: 'usr_demo_adm',
+    },
+  ];
+
+  for (const post of blogPosts) {
+    await prisma.blogPost.upsert({
+      where: { slug: post.slug },
+      update: {},
+      create: post,
+    });
+  }
+
+  console.log('✅ Blog posts seeded (6 posts)');
 }
 
 main()

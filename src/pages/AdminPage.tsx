@@ -3,7 +3,7 @@ import type React from 'react';
 import {
   Activity, Server, FileJson, SlidersHorizontal, ShieldCheck,
   BadgeAlert, IdCard, Settings, CheckCircle,
-  XCircle, ArrowUpRight,
+  XCircle, ArrowUpRight, PenSquare, Trash2, Plus,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import Toggle from '../components/Toggle';
@@ -13,9 +13,10 @@ import PasswordChange from '../components/PasswordChange';
 import ProfileCompleteness from '../components/ProfileCompleteness';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { validateProfile, type ProfileErrors } from '../lib/validation';
-import type { GatewayLog } from '../types';
+import type { GatewayLog, BlogPost } from '../types';
+import { blogApi } from '../lib/blogApi';
 
-type AdminView = 'overview' | 'logs' | 'payload' | 'rules' | 'privileges' | 'disputes' | 'profile' | 'settings';
+type AdminView = 'overview' | 'logs' | 'payload' | 'rules' | 'privileges' | 'disputes' | 'blog' | 'profile' | 'settings';
 
 const INITIAL_LOGS: GatewayLog[] = [
   { id: 'lg-1', timestamp: '21:15:02', method: 'POST', endpoint: '/api/bookings', module: 'Bookings', status: 201, latencyMs: 88 },
@@ -41,6 +42,12 @@ export default function AdminPage() {
     { id: 'd2', title: 'Calendar lock conflict', status: 'review' as const },
   ]);
   const [privileges, setPrivileges] = useLocalStorage('vantage_admin_privileges', { buyerBook: true, publisherApprove: true, adminInspect: true, investorView: true });
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [blogForm, setBlogForm] = useState({ title: '', slug: '', excerpt: '', body: '', category: 'Industry', imageUrl: '', published: false });
+  const [blogSaving, setBlogSaving] = useState(false);
+  const [blogError, setBlogError] = useState('');
 
   useEffect(() => {
     if (!currentUser) return;
@@ -88,6 +95,63 @@ export default function AdminPage() {
     setTimeout(() => setProfileSaved(false), 2000);
   };
 
+  const fetchBlogPosts = async () => {
+    setBlogLoading(true);
+    try {
+      const posts = await blogApi.listAll();
+      setBlogPosts(posts);
+    } catch {
+      // ponytail: silent fail, retry on next view switch
+    } finally {
+      setBlogLoading(false);
+    }
+  };
+
+  const resetBlogForm = () => {
+    setBlogForm({ title: '', slug: '', excerpt: '', body: '', category: 'Industry', imageUrl: '', published: false });
+    setEditingPost(null);
+    setBlogError('');
+  };
+
+  const startEditPost = (post: BlogPost) => {
+    setEditingPost(post);
+    setBlogForm({ title: post.title, slug: post.slug, excerpt: post.excerpt, body: post.body, category: post.category, imageUrl: post.imageUrl, published: post.published });
+    setBlogError('');
+  };
+
+  const saveBlogPost = async () => {
+    if (!blogForm.title || !blogForm.excerpt || !blogForm.body) {
+      setBlogError('Title, excerpt, and body are required.');
+      return;
+    }
+    setBlogSaving(true);
+    setBlogError('');
+    try {
+      if (editingPost) {
+        await blogApi.update(editingPost.id, blogForm);
+      } else {
+        await blogApi.create(blogForm);
+      }
+      resetBlogForm();
+      await fetchBlogPosts();
+    } catch (e: unknown) {
+      setBlogError(e instanceof Error ? e.message : 'Failed to save post');
+    } finally {
+      setBlogSaving(false);
+    }
+  };
+
+  const deleteBlogPost = async (id: string) => {
+    if (!confirm('Delete this post?')) return;
+    try {
+      await blogApi.delete(id);
+      setBlogPosts(prev => prev.filter(p => p.id !== id));
+      if (editingPost?.id === id) resetBlogForm();
+    } catch (e: unknown) {
+      setBlogError(e instanceof Error ? e.message : 'Failed to delete post');
+    }
+  };
+
   /* ── Derived data ── */
   const initials = currentUser.name
     ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -122,6 +186,7 @@ export default function AdminPage() {
     { id: 'rules',      label: 'Rules',       icon: <SlidersHorizontal size={15} /> },
     { id: 'privileges', label: 'Privileges',  icon: <ShieldCheck size={15} /> },
     { id: 'disputes',   label: 'Disputes',    icon: <BadgeAlert size={15} /> },
+    { id: 'blog',       label: 'Blog',        icon: <PenSquare size={15} /> },
     { id: 'profile',    label: 'Profile',     icon: <IdCard size={15} /> },
     { id: 'settings',   label: 'Settings',    icon: <Settings size={15} /> },
   ];
@@ -367,6 +432,117 @@ export default function AdminPage() {
                 <div className="vp-dash-item"><span>Inspect the API log stream to trace dispute origin and request payload.</span><strong>Investigate</strong></div>
                 <div className="vp-dash-item"><span>Approving a dispute clears it from the active queue and updates booking records.</span><strong>Resolve</strong></div>
                 <div className="vp-dash-item"><span>Dismissing removes the dispute without modifying any related bookings.</span><strong>Dismiss</strong></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        {/* ── Blog ── */}
+        <section className={`vp-dashboard-view${activeView === 'blog' ? ' active' : ''}`}>
+          <div className="vp-dash-page-header">
+            <p className="vp-eyebrow">Content management</p>
+            <h2>Blog posts and publishing controls.</h2>
+          </div>
+
+          <div className="vp-panel-grid">
+            {/* Post list */}
+            <div className="vp-dash-panel">
+              <div className="vp-panel-title">
+                <div><h3>{editingPost ? 'Edit post' : 'Posts'}</h3></div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {editingPost && (
+                    <button className="vp-btn sm" type="button" onClick={resetBlogForm}>Cancel</button>
+                  )}
+                  <button className="vp-btn sm primary" type="button" onClick={() => { void fetchBlogPosts(); }}>
+                    <Plus size={14} /> New
+                  </button>
+                </div>
+              </div>
+
+              {blogLoading ? (
+                <div className="vp-empty">Loading posts...</div>
+              ) : blogPosts.length === 0 ? (
+                <div className="vp-empty">No posts yet. Create your first blog post.</div>
+              ) : (
+                <div className="vp-dash-list">
+                  {blogPosts.map(post => (
+                    <div key={post.id} className="vp-dash-item">
+                      <span>
+                        {post.title}
+                        <small>{post.category} · {new Date(post.createdAt).toLocaleDateString()}</small>
+                      </span>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {post.published ? (
+                          <span className="vp-status-pill ok">Published</span>
+                        ) : (
+                          <span className="vp-status-pill warn">Draft</span>
+                        )}
+                        <button className="vp-btn sm" type="button" onClick={() => startEditPost(post)} title="Edit">
+                          <PenSquare size={14} />
+                        </button>
+                        <button className="vp-btn sm" type="button" onClick={() => deleteBlogPost(post.id)} title="Delete">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Editor form */}
+            <aside className="vp-dash-panel">
+              <h3>{editingPost ? 'Edit post' : 'New post'}</h3>
+              {blogError && (
+                <p style={{ color: '#ef4444', fontSize: 'var(--text-caption)', fontFamily: 'monospace', margin: '8px 0' }}>{blogError}</p>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+                <input
+                  type="text" placeholder="Title" value={blogForm.title}
+                  onChange={e => { setBlogForm(f => ({ ...f, title: e.target.value })); if (!editingPost) setBlogForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') })); }}
+                  className="vp-input-inline" style={{ width: '100%' }}
+                />
+                <input
+                  type="text" placeholder="slug" value={blogForm.slug}
+                  onChange={e => setBlogForm(f => ({ ...f, slug: e.target.value }))}
+                  className="vp-input-inline" style={{ width: '100%', fontFamily: 'monospace', fontSize: 'var(--text-caption)' }}
+                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select value={blogForm.category} onChange={e => setBlogForm(f => ({ ...f, category: e.target.value }))} className="vp-select-inline" style={{ flex: 1 }}>
+                    {['Industry', 'Product', 'Market data'].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-caption)', color: 'var(--vp-dim)', whiteSpace: 'nowrap' }}>
+                    <input type="checkbox" checked={blogForm.published} onChange={e => setBlogForm(f => ({ ...f, published: e.target.checked }))} />
+                    Published
+                  </label>
+                </div>
+                <textarea
+                  placeholder="Excerpt" value={blogForm.excerpt} rows={2}
+                  onChange={e => setBlogForm(f => ({ ...f, excerpt: e.target.value }))}
+                  className="vp-input-inline" style={{ width: '100%', resize: 'vertical' }}
+                />
+                <input
+                  type="url" placeholder="Image URL" value={blogForm.imageUrl}
+                  onChange={e => setBlogForm(f => ({ ...f, imageUrl: e.target.value }))}
+                  className="vp-input-inline" style={{ width: '100%' }}
+                />
+                <textarea
+                  placeholder="Body (HTML)" value={blogForm.body} rows={8}
+                  onChange={e => setBlogForm(f => ({ ...f, body: e.target.value }))}
+                  className="vp-input-inline" style={{ width: '100%', resize: 'vertical', fontFamily: 'monospace', fontSize: 'var(--text-caption)' }}
+                />
+                <button className="vp-btn primary" type="button" onClick={saveBlogPost} disabled={blogSaving}>
+                  {blogSaving ? 'Saving...' : editingPost ? 'Update post' : 'Create post'}
+                </button>
+              </div>
+
+              <div style={{ marginTop: 16 }}>
+                <div className="vp-profile-context">
+                  <div className="vp-dash-item"><span>Slug auto-generates from title but can be overridden.</span><strong>Slug</strong></div>
+                  <div className="vp-dash-item"><span>Draft posts are only visible to admin. Published posts appear on /blog.</span><strong>Published</strong></div>
+                  <div className="vp-dash-item"><span>Body accepts HTML for formatting.</span><strong>HTML</strong></div>
+                </div>
               </div>
             </aside>
           </div>
