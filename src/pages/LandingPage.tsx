@@ -402,14 +402,6 @@ export default function LandingPage() {
             </button>
           </div>
         </div>
-        <a
-          className="vp-cta-credit"
-          href="https://unsplash.com/@vitalis_nwenyi"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Photo: Vitalis Nwenyi / Unsplash
-        </a>
       </section>
 
         <div className="vp-stack-shadow" aria-hidden="true" />

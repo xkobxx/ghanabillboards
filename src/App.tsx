@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Lenis from 'lenis';
 import gsap from 'gsap';
@@ -18,9 +18,19 @@ import BuyerPage from './pages/BuyerPage';
 import PublisherPage from './pages/PublisherPage';
 import AdminPage from './pages/AdminPage';
 import BookingPage from './pages/BookingPage';
+import PricingPage from './pages/PricingPage';
+import AboutPage from './pages/AboutPage';
+import LocationsPage from './pages/LocationsPage';
+import BlogPage from './pages/BlogPage';
+import CaseStudiesPage from './pages/CaseStudiesPage';
+import PublishPage from './pages/PublishPage';
+import FaqPage from './pages/FaqPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import BookingDrawer from './components/BookingDrawer';
 import SignIn from './components/SignIn';
 import Register from './components/Register';
+import { Footer } from './components/Footer';
 
 import { ChevronUp } from 'lucide-react';
 
@@ -36,12 +46,16 @@ function ScrollToTop() {
 
 function RequireAuth({ children, role }: { children: ReactNode; role?: string }) {
   const { currentUser, setAuthMode } = useApp();
-  if (!currentUser) {
-    setAuthMode('signin');
-    return null;
-  }
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!currentUser) setAuthMode('signin');
+  }, [currentUser, setAuthMode]);
+
+  if (!currentUser) return null;
   if (role && currentUser.role !== role) {
-    return <Navigate to={`/${currentUser.role}`} replace />;
+    navigate(`/${currentUser.role}`, { replace: true });
+    return null;
   }
   return <>{children}</>;
 }
@@ -213,6 +227,15 @@ export default function App() {
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/blueprint" element={<BlueprintPage />} />
         <Route path="/investor" element={<RequireAuth role="investor"><InvestorPage /></RequireAuth>} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/locations" element={<LocationsPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/case-studies" element={<CaseStudiesPage />} />
+        <Route path="/publish" element={<PublishPage />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/developer" element={<DeveloperPage />} />
         <Route path="/buyer" element={<RequireAuth role="buyer"><BuyerPage /></RequireAuth>} />
         <Route path="/publisher" element={<RequireAuth role="publisher"><PublisherPage /></RequireAuth>} />
@@ -220,35 +243,7 @@ export default function App() {
       </Routes>
 
       {/* Public-page footer; portal metadata lives in the app shell sidebar. */}
-      {!isPortalRoute && (
-        <footer className="border-t border-[var(--color-border)] bg-[var(--color-background)]">
-          <div className="max-w-[1200px] mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row justify-between gap-8">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-4 h-4 bg-[var(--color-primary)] flex items-center justify-center rounded-sm">
-                  <div className="w-2 h-2 bg-[var(--color-black)] rotate-45" />
-                </div>
-                <span className="font-serif font-bold text-[var(--color-text-primary)] tracking-wider text-sm">Vantage Point</span>
-              </div>
-              <p className="text-caption font-mono text-[var(--color-text-muted)] max-w-xs leading-relaxed">
-                Programmatic exchange for emerging markets
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-x-10 gap-y-1.5 text-caption font-mono text-[var(--color-text-muted)] uppercase tracking-wider">
-              <Link to="/booking" className="hover:text-[var(--color-primary-text)] transition-colors">Booking</Link>
-              <Link to="/blueprint" className="hover:text-[var(--color-primary-text)] transition-colors">Blueprint</Link>
-              <a href="mailto:hello@vantagepoint.media" className="hover:text-[var(--color-primary-text)] transition-colors">Contact</a>
-              <Link to="/" className="hover:text-[var(--color-primary-text)] transition-colors">About</Link>
-            </div>
-          </div>
-          <div className="border-t border-[var(--color-border)]">
-            <div className="max-w-[1200px] mx-auto px-6 sm:px-10 py-4 flex flex-col sm:flex-row justify-between gap-1 text-caption font-mono text-[var(--color-text-muted)]">
-              <span>© 2026 Vantage Point</span>
-              <span>Media Network</span>
-            </div>
-          </div>
-        </footer>
-      )}
+      {!isPortalRoute && <Footer />}
 
       <BookingDrawer
         billboard={selectedBillboard}
@@ -268,7 +263,7 @@ export default function App() {
             navigate(`/${user.role}`);
           }}
           onSwitchToRegister={() => setAuthMode('register')}
-          onCancel={() => setAuthMode(null)}
+          onCancel={() => { setAuthMode(null); if (isPortalRoute) navigate('/'); }}
         />
       )}
       {authMode === 'register' && (
@@ -280,7 +275,7 @@ export default function App() {
             navigate(`/${user.role}`);
           }}
           onSwitchToSignIn={() => setAuthMode('signin')}
-          onCancel={() => setAuthMode(null)}
+          onCancel={() => { setAuthMode(null); if (isPortalRoute) navigate('/'); }}
         />
       )}
 

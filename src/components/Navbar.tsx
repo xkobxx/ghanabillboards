@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, ScanLine, Menu, X, LogOut } from 'lucide-react';
+import { ArrowUpRight, ScanLine, Menu, X, LogOut, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import ThemeToggle from './ThemeToggle';
 import UserDropdown from './UserDropdown';
@@ -9,6 +9,7 @@ import type { UserDropdownItem } from './UserDropdown';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, signOut, setAuthMode } = useApp();
@@ -31,6 +32,22 @@ export default function Navbar() {
         <Link to="/blueprint" className={isActive('/blueprint') ? 'active' : ''}>
           Platform
         </Link>
+        <Link to="/pricing" className={isActive('/pricing') ? 'active' : ''}>
+          Pricing
+        </Link>
+        <div className="vp-nav-dropdown" onMouseEnter={() => setResourcesOpen(true)} onMouseLeave={() => setResourcesOpen(false)}>
+          <button type="button" className="vp-nav-dropdown-trigger">
+            Resources <ChevronDown size={13} />
+          </button>
+          {resourcesOpen && (
+            <div className="vp-nav-dropdown-panel">
+              <Link to="/about" onClick={() => setResourcesOpen(false)}>About</Link>
+              <Link to="/locations" onClick={() => setResourcesOpen(false)}>Locations</Link>
+              <Link to="/blog" onClick={() => setResourcesOpen(false)}>Blog</Link>
+              <Link to="/case-studies" onClick={() => setResourcesOpen(false)}>Case Studies</Link>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Desktop actions */}
@@ -69,6 +86,26 @@ export default function Navbar() {
         <Link to="/blueprint" onClick={() => setMenuOpen(false)}
           className={isActive('/blueprint') ? 'active' : ''}>
           Platform
+        </Link>
+        <Link to="/pricing" onClick={() => setMenuOpen(false)}
+          className={isActive('/pricing') ? 'active' : ''}>
+          Pricing
+        </Link>
+        <Link to="/about" onClick={() => setMenuOpen(false)}
+          className={isActive('/about') ? 'active' : ''}>
+          About
+        </Link>
+        <Link to="/locations" onClick={() => setMenuOpen(false)}
+          className={isActive('/locations') ? 'active' : ''}>
+          Locations
+        </Link>
+        <Link to="/blog" onClick={() => setMenuOpen(false)}
+          className={isActive('/blog') ? 'active' : ''}>
+          Blog
+        </Link>
+        <Link to="/case-studies" onClick={() => setMenuOpen(false)}
+          className={isActive('/case-studies') ? 'active' : ''}>
+          Case Studies
         </Link>
         <div className="vp-mobile-actions">
           {currentUser ? (

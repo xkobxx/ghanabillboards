@@ -11,6 +11,11 @@ import pkg from '../../package.json';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const HERO_IMG = 'https://images.unsplash.com/photo-1535796127493-311e2dbb2abb?auto=format&fit=crop&w=2400&q=85';
+const CTA_IMG = 'https://images.unsplash.com/photo-1535796127493-311e2dbb2abb?auto=format&fit=crop&w=2400&q=85';
+
+gsap.registerPlugin(ScrollTrigger);
+
 const CITIES = ['Accra', 'Lagos', 'Nairobi', 'Johannesburg', 'Cape Town'];
 
 const FLOW_STEPS = [
@@ -81,6 +86,12 @@ export default function BlueprintPage() {
           }
         );
       });
+
+      gsap.utils.toArray<HTMLElement>('.vp-parallax').forEach((el) => {
+        gsap.to(el, { y: '-20px', ease: 'none',
+          scrollTrigger: { trigger: el.closest('section'), start: 'top bottom', end: 'bottom top', scrub: 1 },
+        });
+      });
     }, containerRef);
 
     // Count-up metrics
@@ -121,7 +132,8 @@ export default function BlueprintPage() {
       <div className="vp-grid-bg" aria-hidden="true" />
 
       {/* §1 — HERO */}
-      <section className="vp-stage" style={{ paddingTop: 140 }} aria-labelledby="blueprint-title">
+      <section className="vp-stage vp-hero-section" style={{ paddingTop: 140 }} aria-labelledby="blueprint-title">
+        <img className="vp-hero-bg vp-parallax" src={HERO_IMG} alt="" loading="eager" decoding="async" referrerPolicy="no-referrer" aria-hidden="true" />
         <div className="vp-wrap">
           <p className="vp-eyebrow reveal">PLATFORM OVERVIEW</p>
           <h1 className="reveal" id="blueprint-title">Built for serious buyers.</h1>
@@ -165,13 +177,7 @@ export default function BlueprintPage() {
           </div>
           <div className="reveal" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 32 }}>
             {CITIES.map((city) => (
-              <span key={city} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '6px 14px', borderRadius: 999,
-                border: '1px solid var(--vp-line)',
-                fontSize: 'var(--text-caption)', color: 'var(--vp-muted)',
-                fontFamily: 'var(--font-mono)',
-              }}>
+              <span key={city} className="vp-city-chip vp-city-chip--pill">
                 <MapPin size={12} />{city}
               </span>
             ))}
@@ -328,6 +334,7 @@ export default function BlueprintPage() {
 
       {/* §6 — CTA */}
       <section className="vp-stage vp-center vp-cta" id="cta">
+        <img className="vp-cta-image" src={CTA_IMG} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" aria-hidden="true" />
         <div className="vp-wrap">
           <p className="vp-eyebrow reveal">GET STARTED</p>
           <h2 className="reveal">Ready to evaluate the platform?</h2>
